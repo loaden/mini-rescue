@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# Rescue Live System: Only focus Recovery
+# Copyright (C) 2021 Yuchen Deng [Zz] <loaden@gmail.com>
+# QQ Group: 19346666, 111601117
+#
 # Redo Rescue: Backup and Recovery Made Easy <redorescue.com>
 # Copyright (C) 2010-2020 Zebradots Software
 #
@@ -17,12 +21,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=4.0.1
+VER=0.1
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
 FILE=setup.sh
-USER=redo
+USER=live
 NONFREE=true
 
 # Set colored output codes
@@ -33,7 +37,7 @@ off='\e[0m'
 
 # Show title
 echo -e "\n$off---------------------------"
-echo -e "$wht  REDO RESCUE ISO CREATOR$off"
+echo -e "$wht  MINI RESCUE ISO CREATOR$off"
 echo -e "       Version $VER"
 echo -e "---------------------------\n"
 
