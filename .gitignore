@@ -1,0 +1,4 @@
+rootdir/**
+image/**
+*.tar.zst
+*.iso

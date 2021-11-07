@@ -28,6 +28,7 @@ ROOT=rootdir
 FILE=setup.sh
 USER=live
 NONFREE=true
+MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
 
 # Set colored output codes
 red='\e[1;31m'
@@ -71,23 +72,21 @@ prepare() {
 	#
 	echo -e "$yel* Building from scratch.$off"
 	rm -rf {image,scratch,$ROOT,*.iso}
-	CACHE=debootstrap-$BASE-$ARCH.tar.gz
+	CACHE=debootstrap-$BASE-$ARCH.tar.zst
 	if [ -f "$CACHE" ]; then
 		echo -e "$yel* $CACHE exists, extracting existing archive...$off"
 		sleep 2
-		tar zxvf $CACHE
+		tar -xpvf $CACHE
 	else
 		echo -e "$yel* $CACHE does not exist, running debootstrap...$off"
 		sleep 2
-		# Legacy needs: syslinux, syslinux-common, isolinux, memtest86+
-		apt-get install debootstrap squashfs-tools grub-pc-bin \
-			grub-efi-amd64-signed shim-signed mtools xorriso \
-			syslinux syslinux-common isolinux memtest86+
-		rm -rf $ROOT; mkdir -p $ROOT
+		apt-get install --yes --no-install-recommends debootstrap squashfs-tools zstd \
+			grub-efi-amd64-signed shim-signed mtools xorriso
+		rm -rf $ROOT
+		mkdir -p $ROOT
 		debootstrap --arch=$ARCH --variant=minbase $BASE $ROOT $MIRROR
-		tar zcvf $CACHE ./$ROOT
+		tar -I "zstd -T0" -capvf $CACHE $ROOT
 	fi
-
 }
 
 script_init() {
@@ -536,18 +535,18 @@ fi
 if [ "$ACTION" == "" ]; then
 	# Build new ISO image
 	prepare
-	script_init
-	script_build
-	if [ "$NONFREE" = true ]; then
-		echo -e "$yel* Including non-free packages...$off"
-		script_add_nonfree
-	else
-		echo -e "$yel* Excluding non-free packages.$off"
-	fi
-	script_exit
-	chroot_exec
-	create_livefs
-	create_iso
+#	script_init
+#	script_build
+#	if [ "$NONFREE" = true ]; then
+#		echo -e "$yel* Including non-free packages...$off"
+#		script_add_nonfree
+#	else
+#		echo -e "$yel* Excluding non-free packages.$off"
+#	fi
+#	script_exit
+#	chroot_exec
+#	create_livefs
+#	create_iso
 fi
 
 if [ "$ACTION" == "changes" ]; then
