@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Rescue Live System: Only focus Recovery
+# Mini Rescue Live System: Only Focus Recovery
 # Copyright (C) 2021 Yuchen Deng [Zz] <loaden@gmail.com>
 # QQ Group: 19346666, 111601117
 #
