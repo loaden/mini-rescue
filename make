@@ -81,7 +81,7 @@ prepare() {
 		echo -e "$yel* $CACHE does not exist, running debootstrap...$off"
 		sleep 2
 		apt install --yes --no-install-recommends debootstrap squashfs-tools \
-			isolinux mtools xorriso zstd
+			grub-pc-bin isolinux mtools xorriso zstd
 		rm -rf $ROOT
 		mkdir -p $ROOT
 		debootstrap --arch=$ARCH --variant=minbase --no-check-gpg $BASE $ROOT $MIRROR
@@ -296,14 +296,14 @@ create_iso() {
 	cp $ROOT/boot/vmlinuz-* image/vmlinuz
 	cp $ROOT/boot/initrd.img-* image/initrd
 	mkdir -p {image/EFI/boot,scratch}
-	cp /usr/share/grub/ascii.pf2 image/boot/grub/fonts/
-	cp /usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
-	cp /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
-	cp -r /usr/lib/grub/x86_64-efi image/boot/grub/
+	cp -f /usr/share/grub/ascii.pf2 image/boot/grub/fonts/
+	cp -rf /usr/lib/grub/x86_64-efi image/boot/grub/
+	cp -f /usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
+	cp -f /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
 
 	# Create EFI partition
 	UFAT="scratch/efiboot.img"
-	dd if=/dev/zero of=$UFAT bs=1M count=6
+	dd if=/dev/zero of=$UFAT bs=1M count=3
 	mkfs.vfat $UFAT
 	mcopy -s -i $UFAT image/EFI ::
 
@@ -345,9 +345,6 @@ create_iso() {
 			/boot/grub/bios.img=scratch/bios.img \
 			/EFI/efiboot.img=scratch/efiboot.img
 
-	# Remove scratch directory
-	rm -rf scratch
-
 	# Report final ISO size
 	echo -e "$yel\nISO image saved:"
 	du -sh mrescue-$VER.iso
@@ -368,7 +365,7 @@ if [ "$ACTION" == "clean" ]; then
 fi
 
 if [ "$ACTION" == "" ]; then
-	create_livefs
+	create_iso
 	exit
 	# Build new ISO image
 	prepare

@@ -1,4 +1,5 @@
 rootdir/**
 image/**
+scratch/**
 *.tar.zst
 *.iso
