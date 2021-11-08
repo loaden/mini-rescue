@@ -80,11 +80,11 @@ prepare() {
 	else
 		echo -e "$yel* $CACHE does not exist, running debootstrap...$off"
 		sleep 2
-		apt-get install --yes --no-install-recommends debootstrap squashfs-tools zstd \
+		apt install --yes --no-install-recommends debootstrap squashfs-tools zstd \
 			grub-efi-amd64-signed shim-signed mtools xorriso
 		rm -rf $ROOT
 		mkdir -p $ROOT
-		debootstrap --arch=$ARCH --variant=minbase $BASE $ROOT $MIRROR
+		debootstrap --arch=$ARCH --variant=minbase --no-check-gpg $BASE $ROOT $MIRROR
 		tar -I "zstd -T0" -capvf $CACHE $ROOT
 	fi
 }
@@ -97,21 +97,20 @@ script_init() {
 #!/bin/bash
 
 # System mounts
-mount none -t proc /proc;
-mount none -t sysfs /sys;
+mount none -t proc /proc
+mount none -t sysfs /sys
 mount none -t devpts /dev/pts
 
 # Set hostname
-echo 'redorescue' > /etc/hostname
-echo 'redorescue' > /etc/debian_chroot
+echo 'mrescue' > /etc/hostname
 
 # Set hosts
 cat > /etc/hosts <<END
-127.0.0.1	localhost
-127.0.1.1	redorescue
-::1		localhost ip6-localhost ip6-loopback
-ff02::1		ip6-allnodes
-ff02::2		ip6-allrouters
+127.0.0.1  localhost
+127.0.1.1  mrescue
+::1        localhost ip6-localhost ip6-loopback
+ff02::1    ip6-allnodes
+ff02::2    ip6-allrouters
 END
 
 # Set default locale
@@ -122,7 +121,6 @@ END
 
 # Export environment
 export HOME=/root; export LANG=C; export LC_ALL=C;
-
 EOL
 }
 
@@ -130,72 +128,30 @@ script_build() {
 	#
 	# Setup script: Install packages
 	#
-	if [ "$ARCH" == "i386" ]; then
+	if [[ "$ARCH" == "i386" || "$ARCH" == "x86" ]]; then
 		KERN="686"
 	else
 		KERN="amd64"
 	fi
-	if [ "$BASE" == "bullseye" ]; then
-		# Bullseye-specific PHP version and packages
-		PHPV="7.4"
-		PKGS="chromium-common chromium-sandbox volumeicon-alsa"
-	elif [ "$BASE" == "buster" ]; then
-		# Buster uses PHP 7.3
-		PHPV="7.3"
-		PKGS="chromium-common chromium-sandbox volti obmenu"
-	else
-		# Stretch uses PHP 7.0
-		PHPV="7.0"
-		PKGS="volti obmenu"
-	fi
 	cat >> $ROOT/$FILE <<EOL
 # Install packages
 export DEBIAN_FRONTEND=noninteractive
-apt install --no-install-recommends --yes \
+apt install --yes --no-install-recommends \
 	\
-	linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo \
-        vim-tiny pm-utils iptables-persistent iputils-ping net-tools wget \
-	openssh-client openssh-server rsync less \
+	linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo rsync \
+    nano pm-utils iputils-ping net-tools \
 	\
-	xserver-xorg x11-xserver-utils xinit openbox obconf slim \
-	plymouth plymouth-themes compton dbus-x11 libnotify-bin xfce4-notifyd \
-	gir1.2-notify-0.7 tint2 nitrogen xfce4-appfinder xfce4-power-manager \
-	gsettings-desktop-schemas lxrandr lxmenu-data lxterminal lxappearance \
-	network-manager-gnome gtk2-engines numix-gtk-theme gtk-theme-switch \
-	fonts-lato pcmanfm libfm-modules gpicview mousepad x11vnc pwgen \
-	xvkbd \
+	xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
+	gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
+	xfce4-terminal libcanberra-gtk3-module xfce4-appfinder xfce4-power-manager libexo-1-0 \
+	thunar thunar-archive-plugin xarchiver zstd catfish mousepad gpicview \
 	\
 	beep laptop-detect os-prober discover lshw-gtk hdparm smartmontools \
-	nmap time lvm2 gparted gnome-disk-utility baobab gddrescue testdisk \
+	nmap time lvm2 gparted gnome-disk-utility gddrescue testdisk \
 	dosfstools ntfs-3g reiserfsprogs reiser4progs hfsutils jfsutils \
-	smbclient cifs-utils nfs-common curlftpfs sshfs partclone pigz yad \
 	f2fs-tools exfat-fuse exfat-utils btrfs-progs \
 	\
-	$EXTRA_PACKAGES \
-	\
-	nginx php-fpm php-cli chromium $PKGS
-
-# Modify /etc/issue banner
-perl -p -i -e 's/^D/Redo Rescue $VER\nBased on D/' /etc/issue
-
-# Set vi editor preferences
-perl -p -i -e 's/^set compatible$/set nocompatible/g' /etc/vim/vimrc.tiny
-
-# Use local RTC in Linux (via /etc/adjtime) and disable network time updates
-systemctl disable systemd-timesyncd.service
-
-# Disable SSH server and delete keys
-systemctl disable ssh
-rm -f /etc/ssh/ssh_host_*
-
-# Prevent chromium "save password" prompts
-mkdir -p /etc/chromium/policies/managed
-cat > /etc/chromium/policies/managed/no-password-management.json <<END
-{
-    "AutoFillEnabled": false,
-    "PasswordManagerEnabled": false
-}
-END
+	$EXTRA_PACKAGES
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
@@ -206,31 +162,9 @@ echo '$USER:$USER' | chpasswd
 echo 'root:$USER' | chpasswd
 echo 'default_user root' >> /etc/slim.conf
 echo 'auto_login yes' >> /etc/slim.conf
-echo "Setting default plymouth theme..."
-plymouth-set-default-theme -R redo
-update-initramfs -u
-ln -s /usr/bin/pcmanfm /usr/bin/nautilus
 
-# Configure nginx/php-fpm application server
-perl -p -i -e 's/^user = .*$/user = root/g' /etc/php/$PHPV/fpm/pool.d/www.conf
-perl -p -i -e 's/^group = .*$/group = root/g' /etc/php/$PHPV/fpm/pool.d/www.conf
-perl -p -i -e 's/^ExecStart=(.*)$/ExecStart=\$1 -R/g' /lib/systemd/system/php$PHPV-fpm.service
-cat > /etc/nginx/sites-available/redo <<'END'
-server {
-	listen		80 default_server;
-	server_name	localhost;
-	root		/var/www/html;
-	index		index.php;
-	location ~* \.php$ {
-		fastcgi_pass	unix:/run/php/php$PHPV-fpm.sock;
-		include		fastcgi_params;
-		fastcgi_param	SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-		fastcgi_param	SCRIPT_NAME \$fastcgi_script_name;
-	}
-}
-END
-rm -f /etc/nginx/sites-enabled/default
-ln -s /etc/nginx/sites-available/redo /etc/nginx/sites-enabled/
+# Fake nautilus
+ln -s /usr/bin/thunar /usr/bin/nautilus
 EOL
 }
 
@@ -251,7 +185,6 @@ echo "Adding non-free packages..."
 # Briefly activate non-free repo to install non-free firmware packages
 perl -p -i -e 's/main$/main non-free/' /etc/apt/sources.list
 apt update --yes
-# WARNING: Wireless connections are NOT recommended for backup/restore!
 #
 # To include firmware, uncomment or add packages as needed here in the
 # make script to create a custom image.
@@ -263,6 +196,7 @@ apt install --yes \
 #	firmware-iwlwifi \
 #	firmware-libertas \
 #	firmware-zd1211 \
+update-initramfs -u
 perl -p -i -e 's/ non-free$//' /etc/apt/sources.list
 apt update --yes
 EOL
@@ -285,20 +219,19 @@ script_exit() {
 	#
 	cat >> $ROOT/$FILE <<EOL
 # Save space
-rm -f /usr/bin/{rpcclient,smbcacls,smbclient,smbcquotas,smbget,smbspool,smbtar}
+rm -f /usr/bin/{localedef,perl5.*}
 rm -f /usr/share/icons/*/icon-theme.cache
 rm -rf /usr/share/doc
 rm -rf /usr/share/man
 
 # Clean up and exit
-apt-get autoremove && apt-get clean
+apt autopurge --yes && apt clean
 rm -rf /var/lib/dbus/machine-id
 rm -rf /tmp/*
 rm -f /etc/resolv.conf
-rm -f /etc/debian_chroot
 rm -rf /var/lib/apt/lists/????????*
-umount -lf /proc;
-umount /sys;
+umount -lf /proc
+umount /sys
 umount /dev/pts
 exit
 EOL
@@ -309,10 +242,6 @@ chroot_exec() {
 	# Execute setup script inside chroot environment
 	#
 	echo -e "$yel* Copying assets to root directory...$off"
-	# Copy assets before configuring plymouth theme
-	rsync -h --info=progress2 --archive \
-		./overlay/$ROOT/usr/share/* \
-		./$ROOT/usr/share/
 
 	# Copy /etc/resolv.conf before running setup script
 	cp /etc/resolv.conf ./$ROOT/etc/
@@ -535,16 +464,16 @@ fi
 if [ "$ACTION" == "" ]; then
 	# Build new ISO image
 	prepare
-#	script_init
-#	script_build
-#	if [ "$NONFREE" = true ]; then
-#		echo -e "$yel* Including non-free packages...$off"
-#		script_add_nonfree
-#	else
-#		echo -e "$yel* Excluding non-free packages.$off"
-#	fi
-#	script_exit
-#	chroot_exec
+	script_init
+	script_build
+	if [ "$NONFREE" = true ]; then
+		echo -e "$yel* Including non-free packages...$off"
+		script_add_nonfree
+	else
+		echo -e "$yel* Excluding non-free packages.$off"
+	fi
+	script_exit
+	chroot_exec
 #	create_livefs
 #	create_iso
 fi
