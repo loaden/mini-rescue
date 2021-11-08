@@ -147,7 +147,7 @@ apt install --yes --no-install-recommends \
 	thunar thunar-archive-plugin xarchiver zstd catfish mousepad gpicview \
 	\
 	beep laptop-detect os-prober discover lshw-gtk hdparm smartmontools \
-	nmap time lvm2 gparted gnome-disk-utility gddrescue testdisk \
+	time lvm2 gparted gnome-disk-utility gddrescue testdisk \
 	dosfstools ntfs-3g reiserfsprogs reiser4progs hfsutils jfsutils \
 	f2fs-tools exfat-fuse exfat-utils btrfs-progs \
 	\
@@ -219,7 +219,7 @@ script_exit() {
 	#
 	cat >> $ROOT/$FILE <<EOL
 # Save space
-rm -f /usr/bin/{localedef,perl5.*}
+rm -f /usr/bin/{localedef,perl5.*,python3*m}
 rm -f /usr/share/icons/*/icon-theme.cache
 rm -rf /usr/share/doc
 rm -rf /usr/share/man
@@ -266,29 +266,15 @@ create_livefs() {
 	#
 	echo -e "$yel* Preparing image...$off"
 	rm -f $ROOT/root/.bash_history
-	rm -rf image redorescue-$VER.iso
+	rm -rf image mrescue-$VER.iso
 	mkdir -p image/live
-
-	# Apply changes from overlay
-	echo -e "$yel* Applying changes from overlay...$off"
-	rsync -h --info=progress2 --archive \
-		./overlay/* \
-		.
 
 	# Fix permissions
 	chroot $ROOT/ /bin/bash -c "chown -R root: /etc /root"
-	chroot $ROOT/ /bin/bash -c "chown -R www-data: /var/www/html"
-
-	# Enable startup of Redo monitor service
-	chroot $ROOT/ /bin/bash -c "chmod 644 /etc/systemd/system/redo.service"
-	chroot $ROOT/ /bin/bash -c "systemctl enable redo"
-
-	# Update version number
-	echo $VER > $ROOT/var/www/html/VERSION
 
 	# Compress live filesystem
 	echo -e "$yel* Compressing live filesystem...$off"
-	mksquashfs $ROOT/ image/live/filesystem.squashfs -e boot
+	mksquashfs $ROOT/ image/live/filesystem.squashfs -comp zstd -e boot
 }
 
 create_iso() {
@@ -352,12 +338,12 @@ create_legacy_iso() {
 		-b isolinux/isolinux.bin \
 		-c isolinux/boot.cat \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
-		-o redorescue-$VER.iso \
+		-o mrescue-$VER.iso \
 		image
 
 	# Report final ISO size
 	echo -e "$yel\nISO image saved:"
-	du -sh redorescue-$VER.iso
+	du -sh mrescue-$VER.iso
 	echo -e "$off"
 	echo
 	echo "Done."
@@ -433,7 +419,7 @@ create_uefi_iso() {
 			-e EFI/efiboot.img \
 			-no-emul-boot \
 		-append_partition 2 0xef scratch/efiboot.img \
-		-output redorescue-$VER.iso \
+		-output mrescue-$VER.iso \
 		-graft-points \
 			image \
 			/boot/grub/bios.img=scratch/bios.img \
@@ -444,7 +430,7 @@ create_uefi_iso() {
 
 	# Report final ISO size
 	echo -e "$yel\nISO image saved:"
-	du -sh redorescue-$VER.iso
+	du -sh mrescue-$VER.iso
 	echo -e "$off"
 	echo
 	echo "Done."
@@ -462,6 +448,8 @@ if [ "$ACTION" == "clean" ]; then
 fi
 
 if [ "$ACTION" == "" ]; then
+	create_livefs
+	exit
 	# Build new ISO image
 	prepare
 	script_init
