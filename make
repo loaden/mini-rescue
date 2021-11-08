@@ -80,8 +80,8 @@ prepare() {
 	else
 		echo -e "$yel* $CACHE does not exist, running debootstrap...$off"
 		sleep 2
-		apt install --yes --no-install-recommends debootstrap squashfs-tools zstd \
-			grub-efi-amd64-signed shim-signed mtools xorriso
+		apt install --yes --no-install-recommends debootstrap squashfs-tools \
+			isolinux mtools xorriso zstd
 		rm -rf $ROOT
 		mkdir -p $ROOT
 		debootstrap --arch=$ARCH --variant=minbase --no-check-gpg $BASE $ROOT $MIRROR
@@ -138,8 +138,8 @@ script_build() {
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
 	\
-	linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo rsync \
-    nano pm-utils iputils-ping net-tools \
+	linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo nano \
+    rsync pm-utils iputils-ping net-tools \
 	\
 	xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
 	gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
@@ -231,8 +231,8 @@ rm -rf /tmp/*
 rm -f /etc/resolv.conf
 rm -rf /var/lib/apt/lists/????????*
 umount -lf /proc
-umount /sys
-umount /dev/pts
+umount -lf /sys
+umount -lf /dev/pts
 exit
 EOL
 }
@@ -244,7 +244,7 @@ chroot_exec() {
 	echo -e "$yel* Copying assets to root directory...$off"
 
 	# Copy /etc/resolv.conf before running setup script
-	cp /etc/resolv.conf ./$ROOT/etc/
+	cp /etc/resolv.conf $ROOT/etc/
 
 	# Run setup script inside chroot
 	chmod +x $ROOT/$FILE
@@ -252,7 +252,7 @@ chroot_exec() {
 	echo -e "$red>>> ENTERING CHROOT SYSTEM$off"
 	echo
 	sleep 2
-	chroot $ROOT/ /bin/bash -c "./$FILE"
+	chroot $ROOT/ /bin/bash -c "$FILE"
 	echo
 	echo -e "$red>>> EXITED CHROOT SYSTEM$off"
 	echo
@@ -281,101 +281,21 @@ create_iso() {
 	#
 	# Create ISO image from existing live filesystem
 	#
-	if [ "$BASE" == "stretch" ]; then
-		# Debian 9 supports legacy BIOS booting
-		create_legacy_iso
-	else
-		# Debian 10+ supports UEFI and secure boot
-		create_uefi_iso
-	fi
-}
-
-create_legacy_iso() {
-	#
-	# Create legacy ISO image for Debian 9 (version 2.0 releases)
-	#
 	if [ ! -s "image/live/filesystem.squashfs" ]; then
 		echo -e "$red* ERROR: The squashfs live filesystem is missing.$off\n"
 		exit
 	fi
 
-	# Apply image changes from overlay
-	echo -e "$yel* Applying image changes from overlay...$off"
-	rsync -h --info=progress2 --archive \
-		./overlay/image/* \
-		./image/
-
-	# Remove EFI-related boot assets
-	rm -rf image/boot
-
-	# Update version number
-	perl -p -i -e "s/\\\$VERSION/$VER/g" image/isolinux/isolinux.cfg
-
-	# Prepare image
-	echo -e "$yel* Preparing legacy image...$off"
-	mkdir image/isolinux
-	cp $ROOT/boot/vmlinuz* image/live/vmlinuz
-	cp $ROOT/boot/initrd* image/live/initrd
-	cp /boot/memtest86+.bin image/live/memtest
-	cp /usr/lib/ISOLINUX/isolinux.bin image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/menu.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/vesamenu.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/hdt.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/ldlinux.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/libutil.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/libmenu.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/libcom32.c32 image/isolinux/
-	cp /usr/lib/syslinux/modules/bios/libgpl.c32 image/isolinux/
-	cp /usr/share/misc/pci.ids image/isolinux/
-
-	# Create ISO image
-	echo -e "$yel* Creating legacy ISO image...$off"
-	xorriso -as mkisofs -r \
-		-J -joliet-long \
-		-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
-		-partition_offset 16 \
-		-A "Redo $VER" -volid "Redo Rescue $VER" \
-		-b isolinux/isolinux.bin \
-		-c isolinux/boot.cat \
-		-no-emul-boot -boot-load-size 4 -boot-info-table \
-		-o mrescue-$VER.iso \
-		image
-
-	# Report final ISO size
-	echo -e "$yel\nISO image saved:"
-	du -sh mrescue-$VER.iso
-	echo -e "$off"
-	echo
-	echo "Done."
-	echo
-}
-
-create_uefi_iso() {
-	#
-	# Create ISO image for Debian 10 (version 3.0 releases)
-	#
-	if [ ! -s "image/live/filesystem.squashfs" ]; then
-		echo -e "$red* ERROR: The squashfs live filesystem is missing.$off\n"
-		exit
-	fi
-
-	# Apply image changes from overlay
-	echo -e "$yel* Applying image changes from overlay...$off"
-	rsync -h --info=progress2 --archive \
-		./overlay/image/* \
-		./image/
-
-	# Remove legacy boot assets
-	rm -rf image/isolinux
+	# Sync boot stuff
+	rsync -avh efi/ image/
 
 	# Update version number
 	perl -p -i -e "s/\\\$VERSION/$VER/g" image/boot/grub/grub.cfg
 
 	# Prepare boot image
-	touch image/REDO
-        cp $ROOT/boot/vmlinuz* image/vmlinuz
-        cp $ROOT/boot/initrd* image/initrd
-	mkdir -p {image/EFI/{boot,debian},image/boot/grub/{fonts,theme},scratch}
+	cp $ROOT/boot/vmlinuz-* image/vmlinuz
+	cp $ROOT/boot/initrd.img-* image/initrd
+	mkdir -p {image/EFI/boot,scratch}
 	cp /usr/share/grub/ascii.pf2 image/boot/grub/fonts/
 	cp /usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
 	cp /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
@@ -383,7 +303,7 @@ create_uefi_iso() {
 
 	# Create EFI partition
 	UFAT="scratch/efiboot.img"
-	dd if=/dev/zero of=$UFAT bs=1M count=4
+	dd if=/dev/zero of=$UFAT bs=1M count=6
 	mkfs.vfat $UFAT
 	mcopy -s -i $UFAT image/EFI ::
 
@@ -462,8 +382,8 @@ if [ "$ACTION" == "" ]; then
 	fi
 	script_exit
 	chroot_exec
-#	create_livefs
-#	create_iso
+	create_livefs
+	create_iso
 fi
 
 if [ "$ACTION" == "changes" ]; then
