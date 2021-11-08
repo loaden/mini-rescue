@@ -202,6 +202,16 @@ apt update --yes
 EOL
 }
 
+script_download() {
+	#
+	# Setup script: Download efi package for create iso
+	#
+	cat >> $ROOT/$FILE <<EOL
+echo "Download needed packages..."
+apt download grub-efi-amd64-bin grub-efi-amd64-signed shim-signed
+EOL
+}
+
 script_shell() {
 	#
 	# Setup script: Insert command to open shell for making changes
@@ -231,8 +241,8 @@ rm -rf /tmp/*
 rm -f /etc/resolv.conf
 rm -rf /var/lib/apt/lists/????????*
 umount -lf /proc
-umount -lf /sys
-umount -lf /dev/pts
+umount /sys
+umount /dev/pts
 exit
 EOL
 }
@@ -252,9 +262,11 @@ chroot_exec() {
 	echo -e "$red>>> ENTERING CHROOT SYSTEM$off"
 	echo
 	sleep 2
-	chroot $ROOT/ /bin/bash -c "$FILE"
+	chroot $ROOT/ /bin/bash -c "./$FILE"
 	echo
 	echo -e "$red>>> EXITED CHROOT SYSTEM$off"
+	mkdir -p cache
+	mv -f $ROOT/*.deb cache/ 2>/dev/null
 	echo
 	sleep 2
 	rm -f $ROOT/$FILE
@@ -295,11 +307,25 @@ create_iso() {
 	# Prepare boot image
 	cp $ROOT/boot/vmlinuz-* image/vmlinuz
 	cp $ROOT/boot/initrd.img-* image/initrd
+	mkdir -p cache/{grub,grub-bin,shim}
+	pushd cache/grub
+		ar -xv ../grub*signed*.deb
+		tar -xpf data.tar.xz
+	popd
+	pushd cache/grub-bin
+		ar -xv ../grub*bin*.deb
+		tar -xpf data.tar.xz
+	popd
+	pushd cache/shim
+		ar -xv ../shim*.deb
+		tar -xpf data.tar.xz
+	popd
+	tar -xpf cache/*.deb
 	mkdir -p {image/EFI/boot,scratch}
 	cp -f /usr/share/grub/ascii.pf2 image/boot/grub/fonts/
-	cp -rf /usr/lib/grub/x86_64-efi image/boot/grub/
-	cp -f /usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
-	cp -f /usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
+	cp -rf cache/grub-bin/usr/lib/grub/x86_64-efi image/boot/grub/
+	cp -f cache/shim/usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
+	cp -f cache/grub/usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
 
 	# Create EFI partition
 	UFAT="scratch/efiboot.img"
@@ -365,18 +391,17 @@ if [ "$ACTION" == "clean" ]; then
 fi
 
 if [ "$ACTION" == "" ]; then
-	create_iso
-	exit
 	# Build new ISO image
 	prepare
 	script_init
 	script_build
 	if [ "$NONFREE" = true ]; then
 		echo -e "$yel* Including non-free packages...$off"
-		script_add_nonfree
+		# script_add_nonfree
 	else
 		echo -e "$yel* Excluding non-free packages.$off"
 	fi
+	script_download
 	script_exit
 	chroot_exec
 	create_livefs
