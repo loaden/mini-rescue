@@ -2,5 +2,6 @@ rootdir/**
 image/**
 scratch/**
 cache/**
+isolinux/**
 *.tar.zst
 *.iso
