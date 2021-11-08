@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=0.1
+VER=0.5
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
@@ -265,7 +265,8 @@ chroot_exec() {
 	chroot $ROOT/ /bin/bash -c "./$FILE"
 	echo
 	echo -e "$red>>> EXITED CHROOT SYSTEM$off"
-	mkdir -p cache
+	rm -rf cache
+	mkdir cache
 	mv -f $ROOT/*.deb cache/ 2>/dev/null
 	echo
 	sleep 2
@@ -310,17 +311,16 @@ create_iso() {
 	mkdir -p cache/{grub,grub-bin,shim}
 	pushd cache/grub
 		ar -xv ../grub*signed*.deb
-		tar -xpf data.tar.xz
+		tar -xpvf data.tar.xz
 	popd
 	pushd cache/grub-bin
 		ar -xv ../grub*bin*.deb
-		tar -xpf data.tar.xz
+		tar -xpvf data.tar.xz
 	popd
 	pushd cache/shim
 		ar -xv ../shim*.deb
-		tar -xpf data.tar.xz
+		tar -xpvf data.tar.xz
 	popd
-	tar -xpf cache/*.deb
 	mkdir -p {image/EFI/boot,scratch}
 	cp -f /usr/share/grub/ascii.pf2 image/boot/grub/fonts/
 	cp -rf cache/grub-bin/usr/lib/grub/x86_64-efi image/boot/grub/
@@ -352,7 +352,7 @@ create_iso() {
 		-iso-level 3 \
 		-full-iso9660-filenames \
 		-joliet-long \
-		-volid "Redo Rescue $VER" \
+		-volid "Mini Rescue $VER" \
 		-eltorito-boot \
 			boot/grub/bios.img \
 			-no-emul-boot \
