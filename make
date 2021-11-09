@@ -137,7 +137,7 @@ script_build() {
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
     \
-    linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo nano \
+    linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo nano procps \
     rsync pm-utils iputils-ping net-tools fonts-wqy-microhei \
     \
     xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
