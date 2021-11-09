@@ -1,2 +1,2 @@
-# rescue
-Mini Linux Rescue Boot Disk.
+### Mini Rescue
+Mini Linux Rescue LiveCD.
