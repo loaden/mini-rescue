@@ -137,7 +137,7 @@ apt install --yes --no-install-recommends \
     \
     xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
     gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
-    xfce4-terminal libcanberra-gtk3-module xfce4-appfinder xfce4-power-manager libexo-1-0 \
+    xfce4-terminal libcanberra-gtk3-module xfce4-appfinder xfce4-power-manager \
     thunar thunar-archive-plugin xarchiver zstd catfish mousepad gpicview \
     \
     beep laptop-detect os-prober discover lshw-gtk hdparm smartmontools \
@@ -146,6 +146,10 @@ apt install --yes --no-install-recommends \
     f2fs-tools exfat-fuse exfat-utils btrfs-progs \
     \
     $EXTRA_PACKAGES
+
+if [ "$BASE" == "buster" ]; then
+    apt install --yes --no-install-recommends libexo-1-0
+fi
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
