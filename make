@@ -288,14 +288,20 @@ create_iso() {
     perl -p -i -e "s/\\\$VERSION/$VER/g" image/boot/grub/grub.cfg
 
     # Prepare boot image
-    if [ ! -f "cache/usr/bin/grub-mkstandalone" ]; then
-        rm -rf cache
-        mkdir cache
-        tar -xpvf debootstrap-$BASE-$ARCH.tar.zst cache
+    cache_dir=cache
+    if [ ! -f "$cache_dir/usr/bin/grub-mkstandalone" ]; then
+        rm -rf $cache_dir
+        mkdir -p $cache_dir
+        tar -xpvf debootstrap-$BASE-$ARCH.tar.zst --directory=$cache_dir
+        pushd $cache_dir
+            mv $ROOT/* .
+            rm -r $ROOT
+        popd
     fi
-    cp -f image/boot/grub/grub.cfg cache/
+
+    cp -f image/boot/grub/grub.cfg $cache_dir/
     root_bak=$ROOT
-    export ROOT=cache
+    export ROOT=$cache_dir
     cat >> $ROOT/$FILE <<EOL
     export DEBIAN_FRONTEND=noninteractive
     apt install --yes --no-install-recommends \
@@ -316,28 +322,14 @@ EOL
     chroot_exec
     export ROOT=$root_bak
 
+    mkdir -p {image/{EFI/boot,boot/grub/fonts},scratch}
+    cp -f $cache_dir/bios.img scratch/
+    cp -rf $cache_dir/usr/lib/grub/x86_64-efi image/boot/grub/
+    cp -f $cache_dir/usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
+    cp -f $cache_dir/usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
+    cp -f $cache_dir/usr/share/grub/ascii.pf2 image/boot/grub/fonts/
     cp $ROOT/boot/vmlinuz-* image/vmlinuz
     cp $ROOT/boot/initrd.img-* image/initrd
-    # pushd cache
-    #     ar -xv grub*signed*.deb
-    #     tar -xpf data.tar.xz
-    #     ar -xv grub*bin*.deb
-    #     tar -xpf data.tar.xz
-    #     ar -xv shim*.deb
-    #     tar -xpf data.tar.xz
-    #     ar -xv isolinux*.deb
-    #     tar -xpf data.tar.xz
-    #     ar -xv syslinux_*.deb
-    #     tar -xpf data.tar.xz
-    #     ar -xv syslinux-common*.deb
-    #     tar -xpf data.tar.xz
-    # popd
-    mkdir -p {image/{EFI/boot,boot/grub/fonts},scratch}
-    cp -f cache/bios.img scratch/
-    cp -rf cache/usr/lib/grub/x86_64-efi image/boot/grub/
-    cp -f cache/usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
-    cp -f cache/usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
-    cp -f cache/usr/share/grub/ascii.pf2 image/boot/grub/fonts/
 
     # Create EFI partition
     UFAT="scratch/efiboot.img"
@@ -359,7 +351,7 @@ EOL
             -boot-info-table \
             --eltorito-catalog boot/grub/boot.cat \
         --grub2-boot-info \
-        --grub2-mbr cache/usr/lib/grub/i386-pc/boot_hybrid.img \
+        --grub2-mbr $cache_dir/usr/lib/grub/i386-pc/boot_hybrid.img \
         -eltorito-alt-boot \
             -e EFI/efiboot.img \
             -no-emul-boot \
@@ -390,6 +382,8 @@ if [ "$ACTION" == "clean" ]; then
 fi
 
 if [ "$ACTION" == "" ]; then
+create_iso
+exit
     # Build new ISO image
     prepare
     script_init
