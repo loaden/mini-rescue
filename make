@@ -98,12 +98,12 @@ script_init() {
 #!/bin/bash
 
 # Set hostname
-echo 'mrescue' > /etc/hostname
+echo 'rescue' > /etc/hostname
 
 # Set hosts
 cat > /etc/hosts <<END
 127.0.0.1  localhost
-127.0.1.1  mrescue
+127.0.1.1  rescue
 ::1        localhost ip6-localhost ip6-loopback
 ff02::1    ip6-allnodes
 ff02::2    ip6-allrouters
