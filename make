@@ -305,7 +305,10 @@ create_iso() {
     cat >> $ROOT/$FILE <<EOL
     export DEBIAN_FRONTEND=noninteractive
     apt install --yes --no-install-recommends \
-        grub-efi-amd64-bin grub-efi-amd64-signed shim-signed grub-pc-bin
+        grub-efi-amd64-bin grub-efi-amd64-signed shim-signed grub-pc-bin fonts-cantarell
+    # Generate GRUB font
+    usr/share/fonts/opentype/cantarell
+    grub-mkfont --output=yuchen.pf2 --size=16 /usr/share/fonts/opentype/cantarell/Cantarell-Regular.otf
     # Create image for BIOS and CD-ROM
     grub-mkstandalone \
         --format=i386-pc \
@@ -313,7 +316,7 @@ create_iso() {
         --install-modules="linux normal iso9660 biosdisk memdisk search help tar ls all_video font gfxmenu png" \
         --modules="linux normal iso9660 biosdisk search help all_video font gfxmenu png" \
         --locales="" \
-        --fonts="" \
+        --fonts="yuchen" \
         "boot/grub/grub.cfg=grub.cfg"
     # Prepare image for UEFI
     cat /usr/lib/grub/i386-pc/cdboot.img core.img > bios.img
@@ -323,11 +326,12 @@ EOL
     export ROOT=$root_bak
 
     mkdir -p {image/{EFI/boot,boot/grub/fonts},scratch}
+    touch image/DENG
     cp -f $cache_dir/bios.img scratch/
     cp -rf $cache_dir/usr/lib/grub/x86_64-efi image/boot/grub/
     cp -f $cache_dir/usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
     cp -f $cache_dir/usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
-    cp -f $cache_dir/usr/share/grub/ascii.pf2 image/boot/grub/fonts/
+    cp -f $cache_dir/yuchen.pf2 image/boot/grub/fonts/
     cp $ROOT/boot/vmlinuz-* image/vmlinuz
     cp $ROOT/boot/initrd.img-* image/initrd
 
@@ -340,9 +344,10 @@ EOL
     # Create final ISO image
     xorriso \
         -as mkisofs \
+        -r -o mrescue-$VER.iso \
         -iso-level 3 \
         -full-iso9660-filenames \
-        -joliet-long \
+        -J -joliet-long \
         -volid "Mini Rescue $VER" \
         -eltorito-boot \
             boot/grub/bios.img \
@@ -356,7 +361,6 @@ EOL
             -e EFI/efiboot.img \
             -no-emul-boot \
         -append_partition 2 0xef scratch/efiboot.img \
-        -output mrescue-$VER.iso \
         -graft-points \
             image \
             /boot/grub/bios.img=scratch/bios.img \
@@ -382,15 +386,13 @@ if [ "$ACTION" == "clean" ]; then
 fi
 
 if [ "$ACTION" == "" ]; then
-create_iso
-exit
     # Build new ISO image
     prepare
     script_init
     script_build
     if [ "$NONFREE" = true ]; then
         echo -e "$yel* Including non-free packages...$off"
-        # script_add_nonfree
+        script_add_nonfree
     else
         echo -e "$yel* Excluding non-free packages.$off"
     fi
