@@ -207,7 +207,7 @@ script_download() {
 	#
 	cat >> $ROOT/$FILE <<EOL
 echo "Download needed packages..."
-apt download grub-efi-amd64-bin grub-efi-amd64-signed shim-signed syslinux syslinux-common isolinux
+apt download grub-efi-amd64-bin grub-efi-amd64-signed shim-signed grub-pc-bin
 EOL
 }
 
@@ -264,7 +264,6 @@ chroot_exec() {
 	chroot $ROOT/ /bin/bash -c "./$FILE"
 	echo
 	echo -e "$red>>> EXITED CHROOT SYSTEM$off"
-	rm -rf cache
 	mkdir cache
 	mv -f $ROOT/*.deb cache/ 2>/dev/null
 	echo
@@ -321,43 +320,55 @@ create_iso() {
 		ar -xv syslinux-common*.deb
 		tar -xpf data.tar.xz
 	popd
-	mkdir -p {image/EFI/boot,isolinux}
+	mkdir -p {image/{EFI/boot,boot/grub/fonts},scratch}
 	cp -rf cache/usr/lib/grub/x86_64-efi image/boot/grub/
 	cp -f cache/usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
 	cp -f cache/usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
-    cp -f cache/usr/lib/ISOLINUX/isohdpfx.bin isolinux/
-	cp -f cache/usr/lib/ISOLINUX/isolinux.bin isolinux/
 	cp -f /usr/share/grub/*.pf2 image/boot/grub/fonts/
 
 	# Create EFI partition
-	mkdir -p scratch
 	UFAT="scratch/efiboot.img"
 	dd if=/dev/zero of=$UFAT bs=1M count=3
 	mkfs.vfat $UFAT
 	mcopy -s -i $UFAT image/EFI ::
 
+	# Create image for BIOS and CD-ROM
+	grub-mkstandalone \
+		--format=i386-pc \
+		--output=scratch/core.img \
+		--install-modules="linux normal iso9660 biosdisk memdisk search help tar ls all_video font gfxmenu png" \
+		--modules="linux normal iso9660 biosdisk search help all_video font gfxmenu png" \
+		--locales="" \
+		--fonts="" \
+		"boot/grub/grub.cfg=image/boot/grub/grub.cfg"
+
+	# Prepare image for UEFI
+	cat /usr/lib/grub/i386-pc/cdboot.img scratch/core.img > scratch/bios.img
+
 	# Create final ISO image
 	xorriso \
 		-as mkisofs \
-		-r -o mrescue-$VER.iso \
-		-J -joliet-long \
+		-iso-level 3 \
+		-full-iso9660-filenames \
+		-joliet-long \
 		-volid "Mini Rescue $VER" \
-		-isohybrid-mbr isolinux/isohdpfx.bin \
-   			-b isolinux/isolinux.bin \
-   			-c isolinux/boot.cat \
-   			-boot-load-size 4 \
-			-boot-info-table \
+		-eltorito-boot \
+			boot/grub/bios.img \
 			-no-emul-boot \
+			-boot-load-size 4 \
+			-boot-info-table \
+			--eltorito-catalog boot/grub/boot.cat \
+		--grub2-boot-info \
+		--grub2-mbr /usr/lib/grub/i386-pc/boot_hybrid.img \
 		-eltorito-alt-boot \
 			-e EFI/efiboot.img \
 			-no-emul-boot \
-			-isohybrid-gpt-basdat \
 		-append_partition 2 0xef scratch/efiboot.img \
+		-output mrescue-$VER.iso \
 		-graft-points \
 			image \
-			/EFI/efiboot.img=scratch/efiboot.img \
-			/isolinux/isohdpfx.bin=isolinux/isohdpfx.bin \
-			/isolinux/isolinux.bin=isolinux/isolinux.bin
+			/boot/grub/bios.img=scratch/bios.img \
+			/EFI/efiboot.img=scratch/efiboot.img
 
 	# Report final ISO size
 	echo -e "$yel\nISO image saved:"
