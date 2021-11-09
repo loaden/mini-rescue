@@ -95,11 +95,6 @@ script_init() {
     cat > $ROOT/$FILE <<EOL
 #!/bin/bash
 
-# System mounts
-mount none -t proc /proc
-mount none -t sysfs /sys
-mount none -t devpts /dev/pts
-
 # Set hostname
 echo 'mrescue' > /etc/hostname
 
@@ -223,9 +218,6 @@ rm -rf /var/lib/dbus/machine-id
 rm -rf /tmp/*
 rm -f /etc/resolv.conf
 rm -rf /var/lib/apt/lists/????????*
-umount -R -lf /proc
-umount -R -lf /sys
-umount -R -lf /dev/pts
 exit
 EOL
 }
@@ -239,6 +231,13 @@ chroot_exec() {
     # Copy /etc/resolv.conf before running setup script
     cp /etc/resolv.conf $ROOT/etc/
 
+    # System mounts
+    mount --bind /proc $ROOT/proc
+    mount --bind /sys $ROOT/sys
+    mount --bind /dev $ROOT/dev
+    mount --bind /dev/pts $ROOT/dev/pts
+    mount --bind /run $ROOT/run
+
     # Run setup script inside chroot
     chmod +x $ROOT/$FILE
     echo
@@ -249,6 +248,14 @@ chroot_exec() {
     echo
     echo -e "$red>>> EXITED CHROOT SYSTEM$off"
     echo
+
+    # Undo mounts
+    sleep 2
+    umount -lf $ROOT/proc
+    umount -lf $ROOT/sys
+    umount -lf $ROOT/dev/pts
+    umount -lf $ROOT/dev
+    umount -lf $ROOT/run
     sleep 2
     rm -f $ROOT/$FILE
 }
