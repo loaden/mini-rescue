@@ -131,7 +131,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN live-boot sudo nano
+    linux-image-$KERN firmware-linux-free live-boot sudo nano
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
