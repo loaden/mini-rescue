@@ -289,6 +289,9 @@ create_iso() {
     # Update version number
     perl -p -i -e "s/\\\$VERSION/$VER/g" image/boot/grub/grub.cfg
 
+    # Update base distro
+    perl -p -i -e "s/\\\$BASE/$BASE/g" image/boot/grub/grub.cfg
+
     # Prepare boot image
     cache_dir=cache
     if [ ! -f "$cache_dir/usr/bin/grub-mkstandalone" ]; then
@@ -345,7 +348,7 @@ EOL
     # Create final ISO image
     xorriso \
         -as mkisofs \
-        -r -o mini-rescue-$VER.iso \
+        -r -o mini-rescue-$BASE-$VER.iso \
         -iso-level 3 \
         -full-iso9660-filenames \
         -J -joliet-long \
@@ -369,7 +372,7 @@ EOL
 
     # Report final ISO size
     echo -e "$yel\nISO image saved:"
-    du -sh mini-rescue-$VER.iso
+    du -sh mini-rescue-$BASE-$VER.iso
     echo -e "$off"
     echo
     echo "Done."
