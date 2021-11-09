@@ -22,7 +22,7 @@
 #
 
 VER=1.0 beta
-BASE=bullseye
+BASE=buster
 ARCH=amd64
 ROOT=rootdir
 FILE=setup.sh
