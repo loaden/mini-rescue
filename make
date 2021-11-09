@@ -133,7 +133,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN firmware-linux-free sudo nano procps
+    linux-image-$KERN firmware-linux-free live-boot sudo nano procps
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
