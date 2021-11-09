@@ -28,7 +28,7 @@ ROOT=rootdir
 FILE=setup.sh
 USER=live
 NONFREE=true
-MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+MIRROR=https://repo.huaweicloud.com/debian
 
 # Set colored output codes
 red='\e[1;31m'
@@ -118,7 +118,7 @@ export HOME=/root; export LANG=C; export LC_ALL=C;
 EOL
 }
 
-script_build() {
+script_base() {
     #
     # Setup script: Install packages
     #
@@ -128,12 +128,27 @@ script_build() {
         KERN="amd64"
     fi
     cat >> $ROOT/$FILE <<EOL
-# Install packages
+# Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
+    linux-image-$KERN live-boot sudo nano
+
+# Add regular user
+useradd --create-home $USER --shell /bin/bash
+adduser $USER sudo
+echo '$USER:$USER' | chpasswd
+EOL
+}
+
+script_desktop() {
+    #
+    # Setup script: Install desktop packages
+    #
+    cat >> $ROOT/$FILE <<EOL
+# Install desktop packages
+apt install --yes --no-install-recommends \
     \
-    linux-image-$KERN live-boot sudo nano procps rsync pm-utils \
-    iputils-ping net-tools fonts-wqy-microhei \
+    procps rsync pm-utils iputils-ping net-tools fonts-wqy-microhei \
     \
     xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
     gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
@@ -151,18 +166,10 @@ if [ "$BASE" == "buster" ]; then
     apt install --yes --no-install-recommends libexo-1-0
 fi
 
-# Add regular user
-useradd --create-home $USER --shell /bin/bash
-adduser $USER sudo
-echo '$USER:$USER' | chpasswd
-
 # Prepare single-user system
 echo 'root:root' | chpasswd
 echo 'default_user root' >> /etc/slim.conf
 echo 'auto_login yes' >> /etc/slim.conf
-
-# Fake nautilus
-ln -s /usr/bin/thunar /usr/bin/nautilus
 EOL
 }
 
@@ -399,13 +406,25 @@ if [ "$ACTION" == "" ]; then
     # Build new ISO image
     prepare
     script_init
-    script_build
+    script_base
+    script_desktop
     if [ "$NONFREE" = true ]; then
         echo -e "$yel* Including non-free packages...$off"
         script_add_nonfree
     else
         echo -e "$yel* Excluding non-free packages.$off"
     fi
+    script_exit
+    chroot_exec
+    create_livefs
+    create_iso
+fi
+
+if [ "$ACTION" == "base" ]; then
+    # Create base system
+    prepare
+    script_init
+    script_base
     script_exit
     chroot_exec
     create_livefs
