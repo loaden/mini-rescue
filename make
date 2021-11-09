@@ -261,7 +261,7 @@ create_livefs() {
     #
     echo -e "$yel* Preparing image...$off"
     rm -f $ROOT/root/.bash_history
-    rm -rf image mrescue-$VER.iso
+    rm -rf image mini-rescue-$VER.iso
     mkdir -p image/live
 
     # Fix permissions
@@ -343,7 +343,7 @@ EOL
     # Create final ISO image
     xorriso \
         -as mkisofs \
-        -r -o mrescue-$VER.iso \
+        -r -o mini-rescue-$VER.iso \
         -iso-level 3 \
         -full-iso9660-filenames \
         -J -joliet-long \
@@ -367,7 +367,7 @@ EOL
 
     # Report final ISO size
     echo -e "$yel\nISO image saved:"
-    du -sh mrescue-$VER.iso
+    du -sh mini-rescue-$VER.iso
     echo -e "$off"
     echo
     echo "Done."
