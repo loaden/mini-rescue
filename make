@@ -28,7 +28,9 @@ ROOT=rootdir
 FILE=setup.sh
 USER=live
 NONFREE=true
-MIRROR=https://repo.huaweicloud.com/debian
+MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+LANGUAGE="en_US"
+LC_ALL="C"
 
 # Set colored output codes
 red='\e[1;31m'
@@ -131,7 +133,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN firmware-linux-free live-boot sudo nano
+    linux-image-$KERN firmware-linux-free sudo nano procps
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
@@ -148,23 +150,14 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    procps rsync pm-utils iputils-ping net-tools fonts-wqy-microhei \
+    xserver-xorg xinit xdg-utils dbus-x11 fluxbox network-manager-gnome \
+    pcmanfm xarchiver zstd lxterminal mousepad gpicview \
     \
-    xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
-    gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
-    xfce4-terminal libcanberra-gtk3-module xfce4-appfinder xfce4-power-manager \
-    thunar thunar-archive-plugin xarchiver zstd catfish mousepad gpicview \
+    gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
-    beep laptop-detect os-prober discover lshw-gtk hdparm smartmontools \
-    time lvm2 gparted gnome-disk-utility gddrescue testdisk \
-    dosfstools ntfs-3g reiserfsprogs reiser4progs hfsutils jfsutils \
-    f2fs-tools exfat-fuse exfat-utils btrfs-progs \
+    fonts-wqy-microhei rsync iputils-ping \
     \
     $EXTRA_PACKAGES
-
-if [ "$BASE" == "buster" ]; then
-    apt install --yes --no-install-recommends libexo-1-0
-fi
 
 # Prepare single-user system
 echo 'root:root' | chpasswd
