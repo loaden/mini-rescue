@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=0.5
+VER=1.0 beta
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
@@ -138,7 +138,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
     \
     linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo nano \
-    rsync pm-utils iputils-ping net-tools \
+    rsync pm-utils iputils-ping net-tools fonts-wqy-microhei \
     \
     xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
     gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
@@ -158,7 +158,7 @@ adduser $USER sudo
 echo '$USER:$USER' | chpasswd
 
 # Prepare single-user system
-echo 'root:$USER' | chpasswd
+echo 'root:root' | chpasswd
 echo 'default_user root' >> /etc/slim.conf
 echo 'auto_login yes' >> /etc/slim.conf
 
@@ -226,8 +226,8 @@ rm -rf /tmp/*
 rm -f /etc/resolv.conf
 rm -rf /var/lib/apt/lists/????????*
 umount -lf /proc
-umount /sys
-umount /dev/pts
+umount -lf /sys
+umount -lf /dev/pts
 exit
 EOL
 }
@@ -305,9 +305,9 @@ create_iso() {
     cat >> $ROOT/$FILE <<EOL
     export DEBIAN_FRONTEND=noninteractive
     apt install --yes --no-install-recommends \
-        grub-efi-amd64-bin grub-efi-amd64-signed shim-signed grub-pc-bin fonts-cantarell
+        grub-efi-amd64-bin grub-efi-amd64-signed shim-signed grub-pc-bin fonts-hack
     # Generate GRUB font
-    grub-mkfont --output=yuchen.pf2 --size=16 /usr/share/fonts/opentype/cantarell/Cantarell-Regular.otf
+    grub-mkfont -n Cantarell -o yuchen.pf2 -s16 -v /usr/share/fonts/truetype/hack/Hack-Regular.ttf
     # Create image for BIOS and CD-ROM
     grub-mkstandalone \
         --format=i386-pc \
