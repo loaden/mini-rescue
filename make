@@ -214,7 +214,7 @@ rm -rf /usr/share/man
 
 # Clean up and exit
 apt autopurge --yes && apt clean
-[-L /bin/X11 ] && unlink /bin/X11
+[ -L /bin/X11 ] && unlink /bin/X11
 [ -d $ROOT/usr/share/locale/zh_CN ] && ls -d $ROOT/usr/share/locale/* | grep -v -w en | grep -v -w en_US | xargs rm -rf
 rm -rf /var/lib/dbus/machine-id
 rm -rf /tmp/*
