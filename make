@@ -214,6 +214,7 @@ rm -rf /usr/share/man
 
 # Clean up and exit
 apt autopurge --yes && apt clean
+[-L /bin/X11 ] && unlink /bin/X11
 rm -rf /var/lib/dbus/machine-id
 rm -rf /tmp/*
 rm -f /etc/resolv.conf
