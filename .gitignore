@@ -4,3 +4,4 @@ scratch/**
 cache/**
 *.tar.zst
 *.iso
+*.log

@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=1.0 beta
+VER=1.0
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
@@ -137,8 +137,8 @@ script_build() {
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
     \
-    linux-image-$KERN live-boot systemd-sysv firmware-linux-free sudo nano procps \
-    rsync pm-utils iputils-ping net-tools fonts-wqy-microhei \
+    linux-image-$KERN live-boot sudo nano procps rsync pm-utils \
+    iputils-ping net-tools fonts-wqy-microhei \
     \
     xserver-xorg x11-xserver-utils xinit openbox obconf slim compton dbus-x11 xvkbd \
     gir1.2-notify-0.7 nitrogen gsettings-desktop-schemas network-manager-gnome \
@@ -184,13 +184,11 @@ echo "Adding non-free packages..."
 # Briefly activate non-free repo to install non-free firmware packages
 perl -p -i -e 's/main$/main non-free/' /etc/apt/sources.list
 apt update --yes
-apt install --yes \
+apt install --yes --no-install-recommends \
     firmware-linux-nonfree \
     firmware-atheros \
     firmware-brcm80211 \
-    firmware-iwlwifi \
-    firmware-libertas \
-    firmware-zd1211
+    firmware-iwlwifi
 update-initramfs -u
 perl -p -i -e 's/ non-free$//' /etc/apt/sources.list
 apt update --yes
@@ -225,9 +223,9 @@ rm -rf /var/lib/dbus/machine-id
 rm -rf /tmp/*
 rm -f /etc/resolv.conf
 rm -rf /var/lib/apt/lists/????????*
-umount -lf /proc
-umount -lf /sys
-umount -lf /dev/pts
+umount -R -lf /proc
+umount -R -lf /sys
+umount -R -lf /dev/pts
 exit
 EOL
 }
@@ -264,12 +262,9 @@ create_livefs() {
     rm -rf image mini-rescue-$VER.iso
     mkdir -p image/live
 
-    # Fix permissions
-    chroot $ROOT/ /bin/bash -c "chown -R root: /etc /root"
-
     # Compress live filesystem
     echo -e "$yel* Compressing live filesystem...$off"
-    mksquashfs $ROOT/ image/live/filesystem.squashfs -comp zstd -e boot
+    mksquashfs $ROOT image/live/filesystem.squashfs -comp zstd -e boot
 }
 
 create_iso() {
