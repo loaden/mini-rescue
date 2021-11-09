@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        "**/rootdir": true
+    },
+    "files.watcherExclude": {
+    "**/rootdir/*/**": true
+  }
+}
+
