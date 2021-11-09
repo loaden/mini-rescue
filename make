@@ -307,7 +307,6 @@ create_iso() {
     apt install --yes --no-install-recommends \
         grub-efi-amd64-bin grub-efi-amd64-signed shim-signed grub-pc-bin fonts-cantarell
     # Generate GRUB font
-    usr/share/fonts/opentype/cantarell
     grub-mkfont --output=yuchen.pf2 --size=16 /usr/share/fonts/opentype/cantarell/Cantarell-Regular.otf
     # Create image for BIOS and CD-ROM
     grub-mkstandalone \
