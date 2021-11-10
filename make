@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=1.0
+VER=0.9
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
@@ -29,7 +29,8 @@ FILE=setup.sh
 USER=live
 NONFREE=true
 MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
-LANGUAGE="en_US"
+LANGUAGE="en"
+LANG="en_US.UTF-8"
 LC_ALL="C"
 
 # Set colored output codes
@@ -150,7 +151,7 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit xdg-utils dbus-x11 fluxbox network-manager-gnome \
+    xserver-xorg xinit xdg-utils dbus-x11 blackbox network-manager-gnome \
     pcmanfm xarchiver zstd lxterminal mousepad gpicview \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
