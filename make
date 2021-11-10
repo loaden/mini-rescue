@@ -370,9 +370,10 @@ EOL
     mcopy -s -i $UFAT image/EFI ::
 
     # Create final ISO image
+    iso_image_file=mini-rescue-$BASE$1-$VER.iso
     xorriso \
         -as mkisofs \
-        -r -o mini-rescue-$BASE-$VER.iso \
+        -r -o $iso_image_file \
         -iso-level 3 \
         -full-iso9660-filenames \
         -J -joliet-long \
@@ -396,7 +397,7 @@ EOL
 
     # Report final ISO size
     echo -e "$yel\nISO image saved:"
-    du -sh mini-rescue-$BASE-$VER.iso
+    du -sh $iso_image_file
     echo -e "$off"
     echo
     echo "Done."
@@ -441,7 +442,7 @@ if [ "$ACTION" == "base" ]; then
     script_exit
     chroot_exec
     create_livefs
-    create_iso
+    create_iso "-base"
 fi
 
 if [ "$ACTION" == "changes" ]; then
