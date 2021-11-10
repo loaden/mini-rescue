@@ -134,7 +134,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN firmware-linux-free live-boot sudo nano procps
+    linux-image-$KERN firmware-linux-free live-boot sudo nano procps bash-completion
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
@@ -151,8 +151,9 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit xdg-utils dbus-x11 blackbox network-manager-gnome \
-    pcmanfm xarchiver zstd lxterminal mousepad gpicview \
+    xserver-xorg xinit dbus-x11 xdg-utils blackbox \
+    pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
+    network-manager-gnome \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
@@ -160,10 +161,18 @@ apt install --yes --no-install-recommends \
     \
     $EXTRA_PACKAGES
 
-# Prepare single-user system
-echo 'root:root' | chpasswd
-echo 'default_user root' >> /etc/slim.conf
-echo 'auto_login yes' >> /etc/slim.conf
+# Autologin
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<END
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin $USER --noclear %I 38400 linux
+END
+su - $USER -c "cat > .bash_profile <<END
+if [[ ! $DISPLAY && $(tty) == /dev/tty1 && -f /usr/bin/startx ]]; then
+    startx
+fi
+END
 EOL
 }
 
