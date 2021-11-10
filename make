@@ -207,14 +207,19 @@ script_config() {
     # Setup script: Configure the system
     #
     cat >> $ROOT/$FILE <<EOL
-# Auto login
+# Autologin for shell
 mkdir -p /etc/systemd/system/getty@tty1.service.d
 cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<END
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin $USER --noclear %I 38400 linux
 END
+
+# Autologin for lightdm
 sed -i "s/.*autologin-user=.*/autologin-user=%USER/" /etc/lightdm/lightdm.conf
+
+# No password for sudo
+sed -i "s/.*sudo.*ALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD:ALL/" /etc/sudoers
 EOL
 }
 
