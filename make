@@ -151,7 +151,7 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit dbus-x11 blackbox nodm \
+    xserver-xorg xinit dbus-x11 blackbox bbpager lightdm \
     pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
     network-manager \
     \
@@ -214,6 +214,7 @@ cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<END
 ExecStart=
 ExecStart=-/sbin/agetty --autologin $USER --noclear %I 38400 linux
 END
+sed -i "s/.*autologin-user=.*/autologin-user=%USER/" /etc/lightdm/lightdm.conf
 EOL
 }
 
