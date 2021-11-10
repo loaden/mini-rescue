@@ -151,28 +151,15 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit dbus-x11 xdg-utils blackbox \
+    xserver-xorg xinit dbus-x11 blackbox nodm \
     pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
-    network-manager-gnome \
+    network-manager \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
     fonts-wqy-microhei rsync iputils-ping \
     \
     $EXTRA_PACKAGES
-
-# Autologin
-mkdir -p /etc/systemd/system/getty@tty1.service.d
-cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<END
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin $USER --noclear %I 38400 linux
-END
-su - $USER -c "cat > .bash_profile <<END
-if [[ ! $DISPLAY && $(tty) == /dev/tty1 && -f /usr/bin/startx ]]; then
-    startx
-fi
-END
 EOL
 }
 
@@ -212,6 +199,21 @@ script_shell() {
 echo -e "$red>>> Opening interactive shell. Type 'exit' when done making changes.$off"
 echo
 bash
+EOL
+}
+
+script_config() {
+    #
+    # Setup script: Configure the system
+    #
+    cat >> $ROOT/$FILE <<EOL
+# Auto login
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat > /etc/systemd/system/getty@tty1.service.d/override.conf <<END
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin $USER --noclear %I 38400 linux
+END
 EOL
 }
 
@@ -417,6 +419,7 @@ if [ "$ACTION" == "" ]; then
     else
         echo -e "$yel* Excluding non-free packages.$off"
     fi
+    script_config
     script_exit
     chroot_exec
     create_livefs
@@ -428,6 +431,7 @@ if [ "$ACTION" == "base" ]; then
     prepare
     script_init
     script_base
+    script_config
     script_exit
     chroot_exec
     create_livefs
@@ -439,6 +443,7 @@ if [ "$ACTION" == "changes" ]; then
     echo -e "$yel* Updating existing image.$off"
     script_init
     script_shell
+    script_config
     script_exit
     chroot_exec
     create_livefs
