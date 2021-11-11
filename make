@@ -176,7 +176,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN firmware-linux-free live-boot sudo nano procps bash-completion
+    linux-image-$KERN dmsetup firmware-linux-free live-boot sudo nano procps bash-completion
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
@@ -224,6 +224,7 @@ perl -p -i -e 's/main$/main non-free/' /etc/apt/sources.list
 apt update --yes
 apt install --yes --no-install-recommends \
     firmware-linux-nonfree \
+    firmware-misc-nonfree \
     firmware-atheros \
     firmware-brcm80211 \
     firmware-iwlwifi
@@ -271,7 +272,6 @@ depmod -b / \$uname_r
 
 # Update initrd
 update-initramfs -u
-lsinitramfs /boot/initrd*
 
 # Nano is better than vi
 ln -sf /usr/bin/nano /usr/bin/vi
@@ -464,12 +464,7 @@ if [ "$ACTION" == "" ]; then
     script_init
     script_base
     script_desktop
-    if [ "$NONFREE" = true ]; then
-        echo -e "$yel* Including non-free packages...$off"
-        script_add_nonfree
-    else
-        echo -e "$yel* Excluding non-free packages.$off"
-    fi
+    script_add_nonfree
     script_config
     script_exit
     chroot_exec
@@ -482,6 +477,7 @@ if [ "$ACTION" == "base" ]; then
     prepare
     script_init
     script_base
+    script_add_nonfree
     script_config
     script_exit
     chroot_exec
@@ -497,8 +493,8 @@ if [ "$ACTION" == "changes" ]; then
     script_config
     script_exit
     chroot_exec
-    create_livefs
-    create_iso
+    # create_livefs
+    # create_iso
 fi
 
 if [ "$ACTION" == "boot" ]; then
