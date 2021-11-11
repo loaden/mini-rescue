@@ -225,6 +225,7 @@ apt update --yes
 apt install --yes --no-install-recommends \
     firmware-linux-nonfree \
     firmware-misc-nonfree \
+    firmware-realtek \
     firmware-atheros \
     firmware-brcm80211 \
     firmware-iwlwifi
