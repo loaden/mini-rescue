@@ -227,6 +227,9 @@ sed -i "s/.*sudo.*ALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD:ALL/" /etc/sudoers
 # Update kernel module of depends
 uname_r=$(dpkg-query -W -f='${binary:Package}\n' linux-image-* | head -n 1 | sed 's/linux-image-//')
 depmod -b / $uname_r
+
+# Add extra modules to initrd
+[ -z $(grep ^md /etc/initramfs-tools/modules) ] && echo md >> /etc/initramfs-tools/modules
 EOL
 }
 
