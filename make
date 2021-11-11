@@ -29,7 +29,6 @@ FILE=setup.sh
 USER=live
 NONFREE=true
 MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
-LANG="C"
 
 # Set colored output codes
 red='\e[1;31m'
@@ -103,7 +102,7 @@ clean() {
     # Remove all build files
     #
     chroot_umount
-    rm -rf {image,scratch,$ROOT,*.iso}
+    rm -rf {cache,image,scratch,$ROOT,*.iso,*.log}
     echo -e "$yel* All clean!$off\n"
     exit
 }
