@@ -196,7 +196,7 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit dbus-x11 blackbox bbtime lightdm \
+    xserver-xorg xinit dbus-x11 blackbox lightdm \
     pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
     ifupdown iputils-ping \
     \
