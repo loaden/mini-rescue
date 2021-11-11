@@ -29,9 +29,7 @@ FILE=setup.sh
 USER=live
 NONFREE=true
 MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
-LANGUAGE="en"
-LANG="en_US.UTF-8"
-LC_ALL="C"
+LANG="C"
 
 # Set colored output codes
 red='\e[1;31m'
@@ -225,11 +223,11 @@ END
 sed -i "s/.*sudo.*ALL=(ALL:ALL) ALL/%sudo ALL=(ALL) NOPASSWD:ALL/" /etc/sudoers
 
 # Update kernel module of depends
-uname_r=$(dpkg-query -W -f='${binary:Package}\n' linux-image-* | head -n 1 | sed 's/linux-image-//')
-depmod -b / $uname_r
+uname_r=\$(dpkg-query -W -f='\${binary:Package}\n' linux-image-* | head -n 1 | sed 's/linux-image-//')
+depmod -b / \$uname_r
 
 # Add extra modules to initrd
-[ -z $(grep ^md /etc/initramfs-tools/modules) ] && echo md >> /etc/initramfs-tools/modules
+[ -z \$(grep ^md /etc/initramfs-tools/modules) ] && echo md >> /etc/initramfs-tools/modules
 
 # Update initrd
 update-initramfs -u
@@ -290,7 +288,7 @@ chroot_exec() {
     mkdir $ROOT/run/initramfs
 
     # Compatibility symlink for the pre-oneiric locations
-    ln -s $ROOT/run/initramfs $ROOT/dev/.initramfs
+    ln -sf $ROOT/run/initramfs $ROOT/dev/.initramfs
 
     # Run setup script inside chroot
     chmod +x $ROOT/$FILE
