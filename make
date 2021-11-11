@@ -193,7 +193,7 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit dbus-x11 blackbox bbpager lightdm \
+    xserver-xorg xinit dbus-x11 blackbox bbtime lightdm \
     pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
     ifupdown iputils-ping \
     \
@@ -227,7 +227,6 @@ apt install --yes --no-install-recommends \
     firmware-misc-nonfree \
     firmware-realtek \
     firmware-atheros \
-    firmware-brcm80211 \
     firmware-iwlwifi
 perl -p -i -e 's/ non-free$//' /etc/apt/sources.list
 apt update --yes
