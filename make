@@ -176,7 +176,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN dmsetup firmware-linux-free live-boot sudo nano procps bash-completion
+    linux-image-$KERN init dmsetup firmware-linux-free live-boot sudo nano procps bash-completion
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
@@ -195,11 +195,11 @@ apt install --yes --no-install-recommends \
     \
     xserver-xorg xinit dbus-x11 blackbox bbpager lightdm \
     pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
-    network-manager \
+    ifupdown iputils-ping \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
-    fonts-wqy-microhei rsync iputils-ping \
+    fonts-wqy-microhei rsync \
     \
     $EXTRA_PACKAGES
 EOL
@@ -333,7 +333,11 @@ create_livefs() {
     echo -e "$yel* Preparing image...$off"
     chroot_umount
     rm -f $ROOT/root/.bash_history
-    rm -rf image mini-rescue-$VER.iso
+    if [ -f BASE ]; then
+        rm -rf image mini-rescue-$BASE-base-$VER.iso
+    else
+        rm -rf image mini-rescue-$VER.iso
+    fi
     mkdir -p image/live
 
     # Compress live filesystem
