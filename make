@@ -230,6 +230,10 @@ depmod -b / $uname_r
 
 # Add extra modules to initrd
 [ -z $(grep ^md /etc/initramfs-tools/modules) ] && echo md >> /etc/initramfs-tools/modules
+
+# Update initrd
+update-initramfs -u
+lsinitramfs /boot/initrd*
 EOL
 }
 
