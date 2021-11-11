@@ -274,6 +274,9 @@ depmod -b / \$uname_r
 # Update initrd
 update-initramfs -u
 lsinitramfs /boot/initrd*
+
+# Nano is better than vi
+ln -sf /usr/bin/nano /usr/bin/vi
 EOL
 }
 
