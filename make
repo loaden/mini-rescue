@@ -390,8 +390,8 @@ EOL
     cp -f $cache_dir/usr/lib/shim/shimx64.efi.signed image/EFI/boot/bootx64.efi
     cp -f $cache_dir/usr/lib/grub/x86_64-efi-signed/grubx64.efi.signed image/EFI/boot/grubx64.efi
     cp -f $cache_dir/yuchen.pf2 image/boot/grub/fonts/
-    cp $ROOT/boot/vmlinuz-* image/vmlinuz
-    cp $ROOT/boot/initrd.img-* image/initrd
+    cp -f $ROOT/boot/vmlinuz-* image/vmlinuz
+    cp -f $ROOT/boot/initrd.img-* image/initrd.img
 
     # Create EFI partition
     UFAT="scratch/efiboot.img"
