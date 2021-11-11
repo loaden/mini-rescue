@@ -160,7 +160,7 @@ END
 export MODPROBE_OPTIONS="-qb"
 
 # Export environment
-export HOME=/root; export LANG=C; export LC_ALL=C;
+export HOME=/root; export LANG="C"; export LC_ALL="C";
 EOL
 }
 
@@ -294,7 +294,7 @@ rm -rf /usr/share/man
 # Clean up and exit
 apt autopurge --yes && apt clean
 [ -L /bin/X11 ] && unlink /bin/X11
-[ -d $ROOT/usr/share/locale/zh_CN ] && ls -d $ROOT/usr/share/locale/* | grep -v -w en | grep -v -w en_US | xargs rm -rf
+[ -d /usr/share/locale/zh_CN ] && ls -d /usr/share/locale/* | grep -v -w en | grep -v -w en_US | xargs rm -rf
 rm -rf /var/lib/dbus/machine-id
 rm -rf /tmp/*
 rm -f /etc/resolv.conf
