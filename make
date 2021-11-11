@@ -198,7 +198,7 @@ apt install --yes --no-install-recommends \
     \
     xserver-xorg blackbox lightdm \
     pcmanfm engrampa zstd lxterminal mousepad gpicview \
-    ifupdown iputils-ping \
+    ifupdown iputils-ping dhcpcd5 \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
