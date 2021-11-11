@@ -5,3 +5,4 @@ cache/**
 *.tar.zst
 *.iso
 *.log
+BASE

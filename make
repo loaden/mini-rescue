@@ -414,7 +414,11 @@ EOL
     mcopy -s -i $UFAT image/EFI ::
 
     # Create final ISO image
-    iso_image_file=mini-rescue-$BASE$1-$VER.iso
+    if [ -f BASE ]; then
+        iso_image_file=mini-rescue-$BASE-base-$VER.iso
+    else
+        iso_image_file=mini-rescue-$BASE-$VER.iso
+    fi
     xorriso \
         -as mkisofs \
         -r -o $iso_image_file \
@@ -469,6 +473,7 @@ if [ "$ACTION" == "" ]; then
     script_exit
     chroot_exec
     create_livefs
+    [ $? = 0 ] && rm -f BASE
     create_iso
 fi
 
@@ -482,7 +487,8 @@ if [ "$ACTION" == "base" ]; then
     script_exit
     chroot_exec
     create_livefs
-    create_iso "-base"
+    [ $? = 0 ] && touch BASE
+    create_iso
 fi
 
 if [ "$ACTION" == "changes" ]; then
@@ -493,8 +499,8 @@ if [ "$ACTION" == "changes" ]; then
     script_config
     script_exit
     chroot_exec
-    # create_livefs
-    # create_iso
+    create_livefs
+    create_iso
 fi
 
 if [ "$ACTION" == "boot" ]; then
