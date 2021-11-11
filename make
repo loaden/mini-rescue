@@ -116,7 +116,7 @@ prepare() {
     #
     echo -e "$yel* Building from scratch.$off"
     chroot_umount
-    rm -rf {image,scratch,$ROOT,*.iso}
+    rm -rf {image,scratch,$ROOT}
     CACHE=debootstrap-$BASE-$ARCH.tar.zst
     if [ -f "$CACHE" ]; then
         echo -e "$yel* $CACHE exists, extracting existing archive...$off"
