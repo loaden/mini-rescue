@@ -278,6 +278,19 @@ update-initramfs -u
 
 # Nano is better than vi
 ln -sf /usr/bin/nano /usr/bin/vi
+
+# Blackbox menu
+mkdir -p /etc/X11/blackbox
+cat > /etc/X11/blackbox/blackbox-menu <<END
+[begin] (Mini Rescue $VER)
+    [exec] (Bash) { x-terminal-emulator -T "Bash" -e /bin/bash --login}
+    [exec] (GParted) {sudo /usr/sbin/gparted}
+    [exec] (Files) {/usr/bin/pcmanfm}
+    [sep]
+    [restart] (Restart)
+    [reboot] (Reboot)
+[end]
+END
 EOL
 }
 
