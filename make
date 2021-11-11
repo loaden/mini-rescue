@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=0.9
+VER=0.95
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
@@ -196,7 +196,7 @@ script_desktop() {
 # Install desktop packages
 apt install --yes --no-install-recommends \
     \
-    xserver-xorg xinit dbus-x11 blackbox lightdm \
+    xserver-xorg blackbox lightdm \
     pcmanfm engrampa zstd lxterminal mousepad gpicview \
     ifupdown iputils-ping \
     \
