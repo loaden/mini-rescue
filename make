@@ -288,7 +288,7 @@ cat > /etc/X11/blackbox/blackbox-menu <<END
     [exec] (Files) {/usr/bin/pcmanfm}
     [sep]
     [restart] (Restart)
-    [reboot] (Reboot)
+    [exec] (Reboot) {sudo reboot}
 [end]
 END
 EOL
