@@ -197,7 +197,7 @@ script_desktop() {
 apt install --yes --no-install-recommends \
     \
     xserver-xorg xinit dbus-x11 blackbox lightdm \
-    pcmanfm xarchiver unzip zstd lxterminal mousepad gpicview \
+    pcmanfm engrampa zstd lxterminal mousepad gpicview \
     ifupdown iputils-ping \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
