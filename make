@@ -228,7 +228,6 @@ apt install --yes --no-install-recommends \
     firmware-atheros \
     firmware-brcm80211 \
     firmware-iwlwifi
-update-initramfs -u
 perl -p -i -e 's/ non-free$//' /etc/apt/sources.list
 apt update --yes
 EOL
