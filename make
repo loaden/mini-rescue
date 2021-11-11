@@ -28,7 +28,10 @@ ROOT=rootdir
 FILE=setup.sh
 USER=live
 NONFREE=true
-MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+
+if [ -z "$MIRROR" ]; then
+    MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
+fi
 
 # Set colored output codes
 red='\e[1;31m'
