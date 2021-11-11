@@ -58,10 +58,51 @@ fi
 # Get requested action
 ACTION=$1
 
+chroot_mount() {
+    #
+    # Execute system mounts
+    #
+    mount -t sysfs -o nodev,noexec,nosuid sysfs $ROOT/sys
+    mount -t proc -o nodev,noexec,nosuid proc $ROOT/proc
+
+    # Some things don't work properly without /etc/mtab.
+    ln -sf $ROOT/proc/mounts $ROOT/etc/mtab
+
+    # Note that this only becomes /dev on the real filesystem if udev's scripts
+    # are used; which they will be, but it's worth pointing out
+    if ! mount -t devtmpfs -o mode=0755 udev $ROOT/dev; then
+        echo "W: devtmpfs not available, falling back to tmpfs for $ROOT/dev"
+        mount -t tmpfs -o mode=0755 udev $ROOT/dev
+        [ -e $ROOT/dev/console ] || mknod -m 0600 $ROOT/dev/console c 5 1
+        [ -e $ROOT/dev/null ] || mknod $ROOT/dev/null c 1 3
+    fi
+    mkdir -p $ROOT/dev/pts
+    mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts $ROOT/dev/pts || true
+    mount -t tmpfs -o "noexec,nosuid,size=10%,mode=0755" tmpfs $ROOT/run
+    mkdir $ROOT/run/initramfs
+
+    # Compatibility symlink for the pre-oneiric locations
+    ln -sf $ROOT/run/initramfs $ROOT/dev/.initramfs
+}
+
+chroot_umount() {
+    #
+    # Execute system umounts
+    #
+    sleep 1
+    umount -lf $ROOT/sys 2>/dev/null
+    umount -lf $ROOT/proc 2>/dev/null
+    umount -lf $ROOT/dev/pts 2>/dev/null
+    umount -lf $ROOT/dev 2>/dev/null
+    umount -lf $ROOT/run 2>/dev/null
+    sleep 1
+}
+
 clean() {
     #
     # Remove all build files
     #
+    chroot_umount
     rm -rf {image,scratch,$ROOT,*.iso}
     echo -e "$yel* All clean!$off\n"
     exit
@@ -72,6 +113,7 @@ prepare() {
     # Prepare host environment
     #
     echo -e "$yel* Building from scratch.$off"
+    chroot_umount
     rm -rf {image,scratch,$ROOT,*.iso}
     CACHE=debootstrap-$BASE-$ARCH.tar.zst
     if [ -f "$CACHE" ]; then
@@ -267,47 +309,18 @@ chroot_exec() {
     # Copy /etc/resolv.conf before running setup script
     cp /etc/resolv.conf $ROOT/etc/
 
-    # System mounts
-    mount -t sysfs -o nodev,noexec,nosuid sysfs $ROOT/sys
-    mount -t proc -o nodev,noexec,nosuid proc $ROOT/proc
-
-    # Some things don't work properly without /etc/mtab.
-    ln -sf $ROOT/proc/mounts $ROOT/etc/mtab
-
-    # Note that this only becomes /dev on the real filesystem if udev's scripts
-    # are used; which they will be, but it's worth pointing out
-    if ! mount -t devtmpfs -o mode=0755 udev $ROOT/dev; then
-        echo "W: devtmpfs not available, falling back to tmpfs for $ROOT/dev"
-        mount -t tmpfs -o mode=0755 udev $ROOT/dev
-        [ -e $ROOT/dev/console ] || mknod -m 0600 $ROOT/dev/console c 5 1
-        [ -e $ROOT/dev/null ] || mknod $ROOT/dev/null c 1 3
-    fi
-    mkdir -p $ROOT/dev/pts
-    mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts $ROOT/dev/pts || true
-    mount -t tmpfs -o "noexec,nosuid,size=10%,mode=0755" tmpfs $ROOT/run
-    mkdir $ROOT/run/initramfs
-
-    # Compatibility symlink for the pre-oneiric locations
-    ln -sf $ROOT/run/initramfs $ROOT/dev/.initramfs
-
     # Run setup script inside chroot
     chmod +x $ROOT/$FILE
     echo
     echo -e "$red>>> ENTERING CHROOT SYSTEM$off"
     echo
     sleep 2
+    chroot_mount
     chroot $ROOT/ /bin/bash -c "./$FILE"
+    chroot_umount
     echo
     echo -e "$red>>> EXITED CHROOT SYSTEM$off"
     echo
-
-    # Undo mounts
-    sleep 2
-    umount -lf $ROOT/sys
-    umount -lf $ROOT/proc
-    umount -lf $ROOT/dev/pts
-    umount -lf $ROOT/dev
-    umount -lf $ROOT/run
     sleep 2
     rm -f $ROOT/$FILE
 }
@@ -317,6 +330,7 @@ create_livefs() {
     # Prepare to create new image
     #
     echo -e "$yel* Preparing image...$off"
+    chroot_umount
     rm -f $ROOT/root/.bash_history
     rm -rf image mini-rescue-$VER.iso
     mkdir -p image/live
@@ -330,6 +344,7 @@ create_iso() {
     #
     # Create ISO image from existing live filesystem
     #
+    chroot_umount
     if [ ! -s "image/live/filesystem.squashfs" ]; then
         echo -e "$red* ERROR: The squashfs live filesystem is missing.$off\n"
         exit
