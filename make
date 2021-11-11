@@ -523,6 +523,16 @@ if [ "$ACTION" == "changes" ]; then
     create_iso
 fi
 
+if [ "$ACTION" == "play" ]; then
+    # Enter existing system to happy play
+    echo -e "$yel* Just look around and have fun.$off"
+    script_init
+    script_shell
+    script_config
+    script_exit
+    chroot_exec
+fi
+
 if [ "$ACTION" == "boot" ]; then
     # Rebuild existing ISO image (update bootloader)
     create_iso
