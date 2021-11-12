@@ -284,10 +284,10 @@ su - \$USER -c "mkdir -p ~/.blackbox"
 
 su - \$USER -c "cat > ~/.blackbox/menu <<END
 [begin] (Mini Rescue $VER)
-    [exec] (Bash) { x-terminal-emulator -T \"Bash\" -e /bin/bash --login}
+    [exec] (Bash) {x-terminal-emulator -T \"Bash\" -e /bin/bash --login}
     [exec] (GParted) {sudo /usr/sbin/gparted}
     [exec] (Files) {/usr/bin/pcmanfm}
-    [exec] (Network) {/usr/bin/bash ~/.blackbox/network}
+    [exec] (Network) {x-terminal-emulator -T "Network" -e ~/.blackbox/network}
     [sep]
     [restart] (Restart)
     [exec] (Reboot) {sudo reboot}
@@ -304,9 +304,15 @@ su - \$USER -c "cat > ~/.blackbox/network <<END
 #/bin/bash
 pkill -9 dhcpcd-gtk
 pkill -9 trayer
-/usr/bin/trayer --align right --widthtype request --distance 0 --margin 0 --padding 0 --iconspacing 1 --SetDockType false --SetPartialStrut false --transparent true --alpha 0 --tint 0x00aaaaaa &
 sleep 0.2
-/usr/bin/dhcpcd-gtk &
+nohup trayer --align right --widthtype request --distance 0 --margin 0 --padding 0 --iconspacing 1 --SetDockType false --SetPartialStrut false --transparent true --alpha 0 --tint 0x00aaaaaa &
+sleep 0.2
+nohup dhcpcd-gtk &
+sleep 0.2
+echo
+echo -n Please wait...
+sleep 3
+exit
 END
 "
 su - \$USER -c "chmod u+x ~/.blackbox/network"
