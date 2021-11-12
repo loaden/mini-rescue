@@ -334,13 +334,14 @@ rm -rf /usr/share/doc
 rm -rf /usr/share/man
 
 # Clean up and exit
-no_need_pkgs="mime-support bsdmainutils compton busybox debconf-i18n \
+no_need_pkgs="mime-support bsdmainutils compton debconf-i18n \
     dictionaries-common eject emacsen-common gdbm-l10n \
     iptables locales logrotate menu tasksel tzdata util-linux-locales \
     vim-common whiptail xdg-utils xserver-xorg-video-vmware xxd
     "
 for i in \$no_need_pkgs; do
-    apt purge --yes \$i
+    echo [ apt purge \$i ]
+    apt purge --yes \$i 2>/dev/null
 done
 
 apt autopurge --yes
