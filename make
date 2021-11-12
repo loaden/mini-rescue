@@ -375,11 +375,6 @@ create_livefs() {
     echo -e "$yel* Preparing image...$off"
     chroot_umount
     rm -f $ROOT/root/.bash_history
-    if [ -f BASE ]; then
-        rm -rf image mini-rescue-$BASE-base-$VER.iso
-    else
-        rm -rf image mini-rescue-$VER.iso
-    fi
     mkdir -p image/live
 
     # Compress live filesystem
@@ -465,6 +460,7 @@ EOL
     else
         iso_image_file=mini-rescue-$BASE-$VER.iso
     fi
+    rm -f $iso_image_file
     xorriso \
         -as mkisofs \
         -r -o $iso_image_file \
