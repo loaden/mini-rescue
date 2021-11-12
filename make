@@ -200,7 +200,7 @@ apt install --yes --no-install-recommends \
     \
     xserver-xorg blackbox lightdm \
     pcmanfm engrampa lxterminal mousepad gpicview fonts-wqy-microhei \
-    trayer dhcpcd-gtk openresolv \
+    trayer dhcpcd-gtk openresolv numix-gtk-theme \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
@@ -326,6 +326,13 @@ su - \$USER -c "echo alias shutdown=\'sudo shutdown\' >> ~/.bash_aliases"
 
 # Enable dhcpcd service
 systemctl enable dhcpcd.service
+
+# Gtk config
+su - \$USER -c "cat > ~/.gtkrc-2.0 <<END
+gtk-theme-name="Numix"
+gtk-menu-images=0
+END
+"
 EOL
 }
 
