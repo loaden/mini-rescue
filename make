@@ -334,9 +334,17 @@ rm -rf /usr/share/doc
 rm -rf /usr/share/man
 
 # Clean up and exit
-apt purge --yes mime-support bsdmainutils compton busybox debconf-i18n \
-    dictionaries-common eject emacsen-common gdbm-l10n
-apt autopurge --yes && apt clean
+no_need_pkgs="mime-support bsdmainutils compton busybox debconf-i18n \
+    dictionaries-common eject emacsen-common gdbm-l10n \
+    iptables locales logrotate menu tasksel tzdata util-linux-locales \
+    vim-common whiptail xdg-utils xserver-xorg-video-vmware xxd
+    "
+for i in \$no_need_pkgs; do
+    apt purge --yes \$i
+done
+
+apt autopurge --yes
+apt clean
 [ -L /bin/X11 ] && unlink /bin/X11
 [ -d /usr/share/locale/zh_CN ] && ls -d /usr/share/locale/* | grep -v -w en | grep -v -w en_US | xargs rm -rf
 rm -rf /var/lib/dbus/machine-id
