@@ -199,7 +199,7 @@ apt install --yes --no-install-recommends \
     \
     xserver-xorg blackbox lightdm \
     pcmanfm engrampa lxterminal mousepad gpicview fonts-wqy-microhei \
-    trayer dhcpcd-gtk \
+    trayer dhcpcd-gtk openresolv \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
@@ -286,7 +286,7 @@ su - \$USER -c "cat > ~/.blackbox/menu <<END
     [exec] (Bash) { x-terminal-emulator -T \"Bash\" -e /bin/bash --login}
     [exec] (GParted) {sudo /usr/sbin/gparted}
     [exec] (Files) {/usr/bin/pcmanfm}
-    [exec] (Network) {$HOME/.blackbox/network}
+    [exec] (Network) {/usr/bin/bash ~/.blackbox/network}
     [sep]
     [restart] (Restart)
     [exec] (Reboot) {sudo reboot}
@@ -327,7 +327,6 @@ script_exit() {
     cat >> $ROOT/$FILE <<EOL
 # Save space
 rm -f /usr/bin/{localedef,perl5.*,python3*m}
-rm -f /usr/share/icons/*/icon-theme.cache
 rm -rf /usr/share/doc
 rm -rf /usr/share/man
 
