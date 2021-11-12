@@ -199,7 +199,7 @@ apt install --yes --no-install-recommends \
     \
     xserver-xorg blackbox lightdm \
     pcmanfm engrampa lxterminal mousepad gpicview fonts-wqy-microhei \
-    stalonetray dhcpcd-gtk \
+    trayer dhcpcd-gtk \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
     \
@@ -286,7 +286,7 @@ su - \$USER -c "cat > ~/.blackbox/menu <<END
     [exec] (Bash) { x-terminal-emulator -T \"Bash\" -e /bin/bash --login}
     [exec] (GParted) {sudo /usr/sbin/gparted}
     [exec] (Files) {/usr/bin/pcmanfm}
-    [exec] (Network) {~/.blackbox/network}
+    [exec] (Network) {$HOME/.blackbox/network}
     [sep]
     [restart] (Restart)
     [exec] (Reboot) {sudo reboot}
@@ -296,11 +296,12 @@ END
 su - \$USER -c "cat > ~/.blackboxrc <<END
 session.menuFile: .blackbox/menu
 session.styleFile: /usr/share/blackbox/styles/Gray
+session.screen0.slit.placement: BottomRight
 END
 "
 su - \$USER -c "cat > ~/.blackbox/network <<END
 #/bin/bash
-/usr/bin/stalonetray -geometry 1x1-5-5 --config /dev/null --window-layer bottom --window-strut right --window-type dock --dockapp-mode simple --slot-size 24 --icon-size 16 --grow-gravity NE --icon-gravity NE --skip-taskbar --background \'#AAAAAA\' &
+/usr/bin/trayer --align right --widthtype request --distance 0 --margin 0 --padding 0 --iconspacing 1 --SetDockType false --SetPartialStrut false --transparent true --alpha 0 --tint 0x00aaaaaa &
 sleep 0.2
 /usr/bin/dhcpcd-gtk &
 END
