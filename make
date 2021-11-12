@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=0.95
+VER=0.96
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
@@ -179,7 +179,8 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN init dmsetup firmware-linux-free live-boot sudo nano procps bash-completion
+    linux-image-$KERN init dbus dmsetup firmware-linux-free live-boot sudo nano procps \
+    parted bash-completion ifupdown dhcpcd5 iputils-ping rsync zstd
 
 # Add regular user
 useradd --create-home $USER --shell /bin/bash
@@ -197,12 +198,10 @@ script_desktop() {
 apt install --yes --no-install-recommends \
     \
     xserver-xorg blackbox lightdm \
-    pcmanfm engrampa zstd lxterminal mousepad gpicview \
-    ifupdown iputils-ping dhcpcd5 \
+    pcmanfm engrampa lxterminal mousepad gpicview fonts-wqy-microhei \
+    stalonetray dhcpcd-gtk \
     \
     gparted dosfstools exfat-fuse ntfs-3g btrfs-progs \
-    \
-    fonts-wqy-microhei rsync \
     \
     $EXTRA_PACKAGES
 EOL
@@ -291,6 +290,12 @@ cat > /etc/X11/blackbox/blackbox-menu <<END
     [exec] (Reboot) {sudo reboot}
 [end]
 END
+
+# Fast reboot
+su - \$USER -c "echo alias reboot=\'sudo reboot\' > ~/.bash_aliases"
+
+# Enable dhcpcd service
+systemctl enable dhcpcd.service
 EOL
 }
 
