@@ -301,6 +301,8 @@ END
 "
 su - \$USER -c "cat > ~/.blackbox/network <<END
 #/bin/bash
+pkill -9 dhcpcd-gtk
+pkill -9 trayer
 /usr/bin/trayer --align right --widthtype request --distance 0 --margin 0 --padding 0 --iconspacing 1 --SetDockType false --SetPartialStrut false --transparent true --alpha 0 --tint 0x00aaaaaa &
 sleep 0.2
 /usr/bin/dhcpcd-gtk &
