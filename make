@@ -279,20 +279,40 @@ update-initramfs -u
 ln -sf /usr/bin/nano /usr/bin/vi
 
 # Blackbox menu
-mkdir -p /etc/X11/blackbox
-cat > /etc/X11/blackbox/blackbox-menu <<END
+su - \$USER -c "mkdir -p ~/.blackbox"
+
+su - \$USER -c "cat > ~/.blackbox/menu <<END
 [begin] (Mini Rescue $VER)
-    [exec] (Bash) { x-terminal-emulator -T "Bash" -e /bin/bash --login}
+    [exec] (Bash) { x-terminal-emulator -T \"Bash\" -e /bin/bash --login}
     [exec] (GParted) {sudo /usr/sbin/gparted}
     [exec] (Files) {/usr/bin/pcmanfm}
+    [exec] (Network) {~/.blackbox/network}
     [sep]
     [restart] (Restart)
     [exec] (Reboot) {sudo reboot}
 [end]
 END
+"
+su - \$USER -c "cat > ~/.blackboxrc <<END
+session.menuFile: .blackbox/menu
+session.styleFile: /usr/share/blackbox/styles/Gray
+END
+"
+su - \$USER -c "cat > ~/.blackbox/network <<END
+#/bin/bash
+/usr/bin/stalonetray -geometry 1x1-5-5 --config /dev/null --window-layer bottom --window-strut right --window-type dock --dockapp-mode simple --slot-size 24 --icon-size 16 --grow-gravity NE --icon-gravity NE --skip-taskbar --background \'#AAAAAA\' &
+sleep 0.2
+/usr/bin/dhcpcd-gtk &
+END
+"
+su - \$USER -c "chmod u+x ~/.blackbox/network"
 
 # Fast reboot
 su - \$USER -c "echo alias reboot=\'sudo reboot\' > ~/.bash_aliases"
+
+# Fast shutdown
+su - \$USER -c "echo alias poweroff=\'sudo poweroff\' >> ~/.bash_aliases"
+su - \$USER -c "echo alias shutdown=\'sudo shutdown\' >> ~/.bash_aliases"
 
 # Enable dhcpcd service
 systemctl enable dhcpcd.service
