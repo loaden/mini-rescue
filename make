@@ -60,7 +60,7 @@ fi
 # Get requested action
 ACTION=$1
 
-chroot_mount() {
+function chroot_mount() {
     #
     # Execute system mounts
     #
@@ -87,7 +87,7 @@ chroot_mount() {
     ln -sf $ROOT/run/initramfs $ROOT/dev/.initramfs
 }
 
-chroot_umount() {
+function chroot_umount() {
     #
     # Execute system umounts
     #
@@ -100,7 +100,7 @@ chroot_umount() {
     sleep 1
 }
 
-clean() {
+function clean() {
     #
     # Remove all build files
     #
@@ -110,7 +110,7 @@ clean() {
     exit
 }
 
-prepare() {
+function prepare() {
     #
     # Prepare host environment
     #
@@ -133,7 +133,7 @@ prepare() {
     fi
 }
 
-script_init() {
+function script_init() {
     #
     # Setup script: Base configuration
     #
@@ -153,20 +153,21 @@ ff02::2    ip6-allrouters
 END
 
 # Set default locale
-cat >> /etc/bash.bashrc <<END
-export LANG="C"
-export LC_ALL="C"
+[ -z $(grep "^export LANG=C" /etc/bash.bashrc) ] && cat >> /etc/bash.bashrc <<END
+export LANG=C
+export LC_ALL=C
+export LANGUAGE=en_US
 END
 
 # Set modprobe env
 export MODPROBE_OPTIONS="-qb"
 
 # Export environment
-export HOME=/root; export LANG="C"; export LC_ALL="C";
+export HOME=/root; export LANG=C; export LC_ALL=C; export LANGUAGE=en_US
 EOL
 }
 
-script_base() {
+function script_base() {
     #
     # Setup script: Install packages
     #
@@ -179,7 +180,7 @@ script_base() {
 # Install base packages
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
-    linux-image-$KERN init dbus dmsetup firmware-linux-free live-boot sudo nano procps \
+    linux-image-$KERN init dbus dmsetup firmware-linux-free live-boot sudo nano procps fdisk \
     parted bash-completion ifupdown dhcpcd5 iputils-ping rsync zstd
 
 # Add regular user
@@ -189,7 +190,7 @@ echo '$USER:$USER' | chpasswd
 EOL
 }
 
-script_desktop() {
+function script_desktop() {
     #
     # Setup script: Install desktop packages
     #
@@ -207,7 +208,7 @@ apt install --yes --no-install-recommends \
 EOL
 }
 
-script_add_nonfree() {
+function script_add_nonfree() {
     #
     # Setup script: Install non-free packages for hardware support
     #
@@ -235,7 +236,7 @@ apt update --yes
 EOL
 }
 
-script_shell() {
+function script_shell() {
     #
     # Setup script: Insert command to open shell for making changes
     #
@@ -246,7 +247,7 @@ bash
 EOL
 }
 
-script_config() {
+function script_config() {
     #
     # Setup script: Configure the system
     #
@@ -322,7 +323,7 @@ systemctl enable dhcpcd.service
 EOL
 }
 
-script_exit() {
+function script_exit() {
     #
     # Setup script: Clean up and exit
     #
@@ -333,6 +334,8 @@ rm -rf /usr/share/doc
 rm -rf /usr/share/man
 
 # Clean up and exit
+apt purge --yes mime-support bsdmainutils compton busybox debconf-i18n \
+    dictionaries-common eject emacsen-common gdbm-l10n
 apt autopurge --yes && apt clean
 [ -L /bin/X11 ] && unlink /bin/X11
 [ -d /usr/share/locale/zh_CN ] && ls -d /usr/share/locale/* | grep -v -w en | grep -v -w en_US | xargs rm -rf
@@ -344,7 +347,7 @@ exit
 EOL
 }
 
-chroot_exec() {
+function chroot_exec() {
     #
     # Execute setup script inside chroot environment
     #
@@ -369,7 +372,7 @@ chroot_exec() {
     rm -f $ROOT/$FILE
 }
 
-create_livefs() {
+function create_livefs() {
     #
     # Prepare to create new image
     #
@@ -383,11 +386,12 @@ create_livefs() {
     mksquashfs $ROOT image/live/filesystem.squashfs -comp zstd -e boot
 }
 
-create_iso() {
+function create_iso() {
     #
     # Create ISO image from existing live filesystem
     #
     chroot_umount
+    sleep 0.5
     if [ ! -s "image/live/filesystem.squashfs" ]; then
         echo -e "$red* ERROR: The squashfs live filesystem is missing.$off\n"
         exit
@@ -417,6 +421,7 @@ create_iso() {
     cp -f image/boot/grub/grub.cfg $cache_dir/
     root_bak=$ROOT
     export ROOT=$cache_dir
+    script_init
     cat >> $ROOT/$FILE <<EOL
     export DEBIAN_FRONTEND=noninteractive
     apt install --yes --no-install-recommends \
@@ -551,7 +556,6 @@ if [ "$ACTION" == "play" ]; then
     echo -e "$yel* Just look around and have fun.$off"
     script_init
     script_shell
-    script_config
     script_exit
     chroot_exec
 fi
