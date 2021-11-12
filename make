@@ -329,8 +329,39 @@ systemctl enable dhcpcd.service
 
 # Gtk config
 su - \$USER -c "cat > ~/.gtkrc-2.0 <<END
-gtk-theme-name="Numix"
+gtk-theme-name=\"Numix\"
+gtk-icon-theme-name=\"hicolor\"
+gtk-font-name=\"Sans 10\"
+gtk-cursor-theme-name=\"Adwaita\"
+gtk-cursor-theme-size=0
+gtk-toolbar-style=GTK_TOOLBAR_BOTH
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=1
 gtk-menu-images=0
+gtk-enable-event-sounds=1
+gtk-enable-input-feedback-sounds=1
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=\"hintfull\"
+END
+"
+su - \$USER -c "mkdir -p ~/.config/gtk-3.0"
+su - \$USER -c "cat > ~/.config/gtk-3.0/settings.ini <<END
+[Settings]
+gtk-theme-name=Numix
+gtk-icon-theme-name=hicolor
+gtk-font-name=Sans 10
+gtk-cursor-theme-name=Adwaita
+gtk-cursor-theme-size=0
+gtk-toolbar-style=GTK_TOOLBAR_BOTH
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=1
+gtk-menu-images=0
+gtk-enable-event-sounds=1
+gtk-enable-input-feedback-sounds=1
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintfull
 END
 "
 EOL
@@ -401,6 +432,7 @@ function create_livefs() {
     echo -e "$yel* Preparing image...$off"
     chroot_umount
     rm -f $ROOT/root/.bash_history
+    rm -rf image/live
     mkdir -p image/live
 
     # Compress live filesystem
