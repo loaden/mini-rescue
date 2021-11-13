@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=0.96
+VER=1.0
 BASE=buster
 ARCH=amd64
 ROOT=rootdir
