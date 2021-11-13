@@ -22,12 +22,15 @@
 #
 
 VER=1.0
-BASE=buster
 ARCH=amd64
 ROOT=rootdir
 FILE=setup.sh
 USER=live
 NONFREE=true
+
+if [ -z "$BASE" ]; then
+    BASE=buster
+fi
 
 if [ -z "$MIRROR" ]; then
     MIRROR=https://mirrors.tuna.tsinghua.edu.cn/debian
