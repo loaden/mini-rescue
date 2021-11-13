@@ -1,5 +1,7 @@
 ### Mini Rescue
 **Mini Rescue** is a mini and fast live CD/USB system that focus quick rescue of your system.
+<p><b>QQ group: 19346666, 111601117</b></p>
+
 
 ## Features
 
