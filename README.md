@@ -1,9 +1,4 @@
 ### Mini Rescue
-Mini Linux Rescue LiveCD.
-
-
-## About
-
 **Mini Rescue** is a mini and fast live CD/USB system that focus quick rescue of your system.
 
 ## Features
