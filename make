@@ -184,7 +184,7 @@ function script_base() {
 export DEBIAN_FRONTEND=noninteractive
 apt install --yes --no-install-recommends \
     linux-image-$KERN init dbus dmsetup firmware-linux-free live-boot sudo nano procps fdisk \
-    parted bash-completion ifupdown dhcpcd5 iputils-ping rsync zstd \
+    parted bash-completion ifupdown dhcpcd5 iputils-ping rsync zstd efibootmgr \
     arch-install-scripts
 
 # Add regular user
