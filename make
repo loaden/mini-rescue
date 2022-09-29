@@ -21,7 +21,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-VER=1.0
+VER=1.1
 ARCH=amd64
 ROOT=rootdir
 FILE=setup.sh
@@ -29,7 +29,7 @@ USER=live
 NONFREE=true
 
 if [ -z "$BASE" ]; then
-    BASE=buster
+    BASE=bullseye
 fi
 
 if [ -z "$MIRROR" ]; then
